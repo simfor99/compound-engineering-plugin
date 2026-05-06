@@ -56,7 +56,11 @@ fi
 NORMALIZED_BRANCH=$(echo "$BRANCH_NAME" | sed -E 's@^(feat|fix|refactor|replan|chore|docs)/@@')
 
 # Build a list of fragments at least 4 characters long to avoid noisy short tokens.
-FRAGMENTS=$(echo "$NORMALIZED_BRANCH" | tr '/-_+.' '\n\n\n\n\n' | awk 'length($0) >= 4')
+# Note: '-' is placed first in the tr set so it is literal — putting it between
+# '/' and '_' would have made tr read it as the range '/'..'_' (which includes
+# uppercase letters and digits) and silently destroy fragments for branches
+# like JIRA-123-bug.
+FRAGMENTS=$(echo "$NORMALIZED_BRANCH" | tr -- '-/_+.' '\n\n\n\n\n' | awk 'length($0) >= 4')
 
 if [ -z "$FRAGMENTS" ]; then
     # Branch name was too generic to score against.
