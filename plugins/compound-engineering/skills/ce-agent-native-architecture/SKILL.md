@@ -55,8 +55,8 @@ Pick a number or describe what you want. Wait for the response before proceeding
 | 10, "product", "progressive", "approval", "latent demand" | `references/product-implications.md` |
 | 11, "mobile", "ios", "android", "background", "checkpoint" | `references/mobile-patterns.md` |
 | 12, "test", "testing", "verify", "validate" | `references/agent-native-testing.md` |
-| 13, "review", "refactor", "existing" | `references/refactoring-to-prompt-native.md` |
-| 14, "anti-pattern", "checklist", "success criteria" | `references/checklists.md` |
+| 13, "refactor", "existing", "migrate" | `references/refactoring-to-prompt-native.md` |
+| 14, "review", "audit", "anti-pattern", "checklist", "success criteria" | `references/checklists.md` |
 
 After reading the reference, apply those patterns to the user's specific context.
 </routing>
