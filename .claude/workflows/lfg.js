@@ -38,6 +38,12 @@
  * agents that invoke the corresponding ce-* skill. Skills flagged
  * disable-model-invocation (ce-test-xcode, ce-dogfood-beta) cannot be invoked
  * from a workflow, so their behavior is inlined into Test/Dogfood instead.
+ *
+ * SAFETY: a non-dry run performs real git operations on your LIVE checkout — the
+ * Commit & PR phase (ce-commit-push-pr) creates a branch, commits, pushes, and
+ * opens a PR, which switches the working tree to that new branch. Run from a
+ * clean/disposable branch, or pass { dryRun: true } to stop before Commit & PR.
+ * For true isolation, run the whole pipeline inside a dedicated git worktree.
  */
 
 export const meta = {
@@ -320,15 +326,29 @@ async function reviewAndVerify(dims, scopePrompt, phaseName) {
 // { task, dryRun }, or a string containing a [dry-run] marker. Dry run stops
 // before Commit & PR / CI / Compound — useful for testing the pipeline without
 // opening a PR or writing to docs/solutions/.
+//
+// IMPORTANT: args can arrive as a real object OR as a JSON-encoded STRING (some
+// callers/harnesses stringify it). If it isn't normalized, an object passed as
+// `'{"task":"...","dryRun":true}'` falls into the string branch, the whole JSON
+// becomes the task, and dryRun is silently ignored — which once opened a real PR
+// during what was meant to be a dry run. Normalize first.
 // ---------------------------------------------------------------------------
+
+let parsedArgs = args
+if (typeof args === 'string') {
+  const s = args.trim()
+  if (s.startsWith('{') || s.startsWith('[')) {
+    try { parsedArgs = JSON.parse(s) } catch (e) { parsedArgs = args }
+  }
+}
 
 let task = null
 let DRY_RUN = false
-if (typeof args === 'string' && args.trim()) {
-  task = args.trim()
-} else if (args && typeof args === 'object' && typeof args.task === 'string' && args.task.trim()) {
-  task = args.task.trim()
-  DRY_RUN = !!args.dryRun
+if (typeof parsedArgs === 'string' && parsedArgs.trim()) {
+  task = parsedArgs.trim()
+} else if (parsedArgs && typeof parsedArgs === 'object' && typeof parsedArgs.task === 'string' && parsedArgs.task.trim()) {
+  task = parsedArgs.task.trim()
+  DRY_RUN = !!parsedArgs.dryRun
 }
 if (task && task.indexOf('[dry-run]') !== -1) {
   DRY_RUN = true
