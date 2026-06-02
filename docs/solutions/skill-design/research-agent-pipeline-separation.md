@@ -68,8 +68,8 @@ A "dependency-analyzer" agent that identifies library versions and compatibility
 
 ## Related
 
-- `docs/solutions/skill-design/pass-paths-not-content-to-subagents-2026-03-26.md` -- related agent dispatch optimization pattern (token efficiency, not deduplication)
+- `docs/solutions/skill-design/pass-paths-not-content-to-subagents.md` -- related agent dispatch optimization pattern (token efficiency, not deduplication)
 - `docs/solutions/skill-design/beta-skills-framework.md` -- documents the pipeline chain and the beta-skills rollout pattern that plugs into it
-- `docs/solutions/best-practices/ce-pipeline-end-to-end-learnings-2026-04-17.md` -- extends this framing downstream (document-review, ce-code-review, resolve-pr-feedback) with meta-observations from running the full pipeline end-to-end on a feature
+- `docs/solutions/best-practices/ce-pipeline-end-to-end-learnings.md` -- extends this framing downstream (document-review, ce-code-review, resolve-pr-feedback) with meta-observations from running the full pipeline end-to-end on a feature
 - Commit f7a14b76 on `tmchow/slack-analyst-agent` -- the Slack researcher pass-through optimization that prompted this analysis
 - GitHub issue #492 -- `ce-repo-research-analyst` self-recursion bug (fixed, separate concern)

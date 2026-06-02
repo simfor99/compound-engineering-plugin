@@ -13,7 +13,7 @@ component: "plugins/compound-engineering/skills"
 
 # Script-First Skill Architecture
 
-When a skill processes large datasets (session transcripts, log files, configuration inventories), having the model do the processing is a token-expensive anti-pattern. Moving data processing into a bundled script and having the model present the results cuts token usage by 60-75%. (For which language to write that script in, see [prefer-python-over-bash-for-pipeline-scripts](../best-practices/prefer-python-over-bash-for-pipeline-scripts-2026-04-09.md); this doc is about *whether* to offload, not *which language*.)
+When a skill processes large datasets (session transcripts, log files, configuration inventories), having the model do the processing is a token-expensive anti-pattern. Moving data processing into a bundled script and having the model present the results cuts token usage by 60-75%. (For which language to write that script in, see [prefer-python-over-bash-for-pipeline-scripts](../best-practices/prefer-python-over-bash-for-pipeline-scripts.md); this doc is about *whether* to offload, not *which language*.)
 
 ## Origin
 

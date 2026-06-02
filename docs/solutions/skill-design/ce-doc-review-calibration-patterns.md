@@ -73,7 +73,7 @@ Advisory observations with no articulable consequence need somewhere to land, or
 
 Either alone is insufficient. Persona bands without the template rule produce inconsistent results across personas; the template rule without per-persona bands has nothing to calibrate against.
 
-> **Scoring model note:** This pattern predates the anchored-rubric migration. The original calibration used continuous float bands; scoring is now an anchored rubric (discrete `0/25/50/75/100`, with FYI = anchor `50`). See [confidence-anchored-scoring-2026-04-21.md](./confidence-anchored-scoring-2026-04-21.md) for the canonical scoring model. The band-plus-template structural insight above is independent of the numeric scale.
+> **Scoring model note:** This pattern predates the anchored-rubric migration. The original calibration used continuous float bands; scoring is now an anchored rubric (discrete `0/25/50/75/100`, with FYI = anchor `50`). See [confidence-anchored-scoring.md](./confidence-anchored-scoring.md) for the canonical scoring model. The band-plus-template structural insight above is independent of the numeric scale.
 
 ## Schema compliance requires inline enum callouts, not just `{schema}` injection
 
@@ -107,4 +107,4 @@ Across 7+ runs on the rename fixture, the same document produced user-engagement
 - `plugins/compound-engineering/skills/ce-doc-review/references/subagent-template.md` — output contract with schema conformance block and advisory routing rule
 - `plugins/compound-engineering/agents/` — the 7 doc-review persona agents (flat `ce-*-reviewer.md` files: `ce-coherence-reviewer.md`, `ce-feasibility-reviewer.md`, `ce-design-lens-reviewer.md`, `ce-security-lens-reviewer.md`, `ce-scope-guardian-reviewer.md`, `ce-product-lens-reviewer.md`, `ce-adversarial-document-reviewer.md`) with their confidence calibration bands
 - `tests/fixtures/ce-doc-review/` — three seeded fixtures (rename, auth, feature) for manual calibration testing; see each fixture's header comment for its specific seed map
-- `docs/solutions/developer-experience/branch-based-plugin-install-and-testing-2026-03-26.md` — how to run the skill from a branch checkout for testing
+- `docs/solutions/developer-experience/branch-based-plugin-install-and-testing.md` — how to run the skill from a branch checkout for testing

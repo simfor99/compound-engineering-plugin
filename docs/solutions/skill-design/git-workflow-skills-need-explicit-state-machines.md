@@ -252,4 +252,4 @@ Learning: these skills should be designed and reviewed like tiny state machines,
 ## Related Issues
 
 - [script-first-skill-architecture.md](script-first-skill-architecture.md)
-- [pass-paths-not-content-to-subagents-2026-03-26.md](pass-paths-not-content-to-subagents-2026-03-26.md)
+- [pass-paths-not-content-to-subagents.md](pass-paths-not-content-to-subagents.md)
