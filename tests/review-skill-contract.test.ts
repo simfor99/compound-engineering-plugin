@@ -342,6 +342,10 @@ describe("ce-code-review contract", () => {
     expect(template).toMatch(/Detail line \(per finding/i)
     expect(template).toMatch(/\*\*#N\*\*/)
 
+    // Terse-cell discipline carries a concrete named test (not just "terse")
+    expect(content).toMatch(/one short clause/i)
+    expect(template).toMatch(/one short clause/i)
+
     // Consistency across severities is enforced (the failure seen in the wild: P1 blocks vs P2/P3 tables)
     expect(content).toMatch(/Inconsistent treatment across severities/i)
 
