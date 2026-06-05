@@ -157,6 +157,44 @@ The agent also picks per artifact:
 - Whether HTD has one diagram, several, or none — and whether visualizations
   live in HTD or embedded in other sections
 
+## Prose economy
+
+"Include when material" sizes *which* sections appear; this sizes *how the kept
+prose reads*. A section can be material and still be written loosely — the
+failure mode is a material section padded into a wall of text where
+contradictions hide and the implementing agent loses the thread. A deep plan
+earns length through coverage (more units, more traced requirements, real
+risks), never through wordiness around that coverage.
+
+Hold every kept section to these:
+
+- **One idea per sentence.** A Summary is a handful of sentences, not one
+  sentence with five semicolons and four parentheticals. A KTD's rationale is
+  the load-bearing reason, not every reason.
+- **A requirement or unit is one sentence of intent plus at most one
+  qualifier.** When it would specify two outcomes ("either A or B, the
+  implementer decides"), state the intent and send the fork to Open Questions —
+  don't write both arms in full inside the item.
+- **Cut hedges and intensifiers.** "Critically", "deliberately", "explicitly",
+  "genuinely", "actually", "simply" carry nothing the implementer acts on.
+- **Prefer the verb to the nominalization.** "Demote the grid", not "the
+  demotion of the grid is the deliberate change in this plan".
+
+Precision is not padding: keep file paths, IDs, conditionals, and exact
+thresholds verbatim. Economy targets the connective tissue around them, never
+the precision itself.
+
+**Resolve in place; don't stratify.** When deepening, a doc-review pass, or a
+later decision supersedes earlier text, rewrite or remove the original — don't
+leave it standing as strikethrough or stack a separate "resolutions" layer on
+top of it. Version control holds the history. Stacked strata double the reading
+surface and hide which text is live.
+
+**Named test, run before the plan is declared written:** could the implementer
+find a contradiction in each section in one pass? A sentence carrying more than
+one parenthetical, or an item specifying two outcomes, fails the test — split it
+or defer it.
+
 ## Plan metadata fields
 
 Every plan carries a small set of stable metadata fields that downstream
