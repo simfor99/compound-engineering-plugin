@@ -46,8 +46,28 @@ import { parseFrontmatter } from "../src/utils/frontmatter"
  *    IS the path (`scripts/run.sh`) or embeds it in a command
  *    (`bash scripts/run.sh ARG`, `python3 scripts/foo.py <arg>`), so a
  *    deleted or renamed script is caught even when mentioned only as an
- *    executable command — and (c) the same path tokens inside FENCED code
- *    blocks. (c) is where this rule's fence policy deliberately diverges
+ *    executable command — (c) the same path tokens inside FENCED code
+ *    blocks, and (d) `@`-include targets in prose (`@./references/x.md` —
+ *    inlined at load time, so a deleted target breaks the skill at load).
+ *    For (b) and (c), tokens are unwrapped before the shape gate:
+ *    surrounding quotes and a platform-variable prefix (`${VAR}/`,
+ *    `${VAR:-default}/`, `$VAR/`) are stripped, so the repo's documented
+ *    cross-platform invocation style
+ *    (`bash "${CLAUDE_SKILL_DIR:-.}/scripts/x.sh"` — AGENTS.md
+ *    "Platform-Specific Variables in Skills") yields `scripts/x.sh` as a
+ *    candidate; the variable prefix means "skill-root-relative" by that
+ *    convention, so skill-root anchoring is correct for the remainder.
+ *    Deliberately NOT candidates (per a mechanical audit of every
+ *    references/-, scripts/-, assets/-mentioning line across all skills):
+ *    bare path tokens in prose with no backticks, link, or `@` prefix —
+ *    unmarked prose is where hypothetical teaching examples live, and the
+ *    only real instances (advisory `references/yaml-schema.md` pointers in
+ *    HTML comments inside ce-compound's and ce-compound-refresh's asset
+ *    templates) sit in templates that are instantiated OUTSIDE the skill,
+ *    where the path is context for a future reader, not a runtime
+ *    dependency — and directory-only mentions (`references/` with no
+ *    filename), which name no file to check.
+ *    (c) is where this rule's fence policy deliberately diverges
  *    from Rule 1: fenced bash blocks are where skills put their REAL bundled
  *    script invocations (ce-clean-gone-branches' `bash scripts/clean-gone`),
  *    so stripping fences here would let a deleted or renamed script pass CI
@@ -240,9 +260,31 @@ function extractMarkdownLinkTargets(markdown: string): Located[] {
  */
 const LOCAL_PATH_TOKEN = /^(references|scripts|assets)\/[A-Za-z0-9._/-]+$/
 
-/** Whitespace-delimited tokens of `text` matching the skill-local path shape. */
+/**
+ * Strips the shell wrapping a whitespace token may carry around a skill-local
+ * path: surrounding quotes and a platform-variable prefix (`${VAR}/`,
+ * `${VAR:-default}/`, or `$VAR/`). The repo's documented cross-platform
+ * invocation style (AGENTS.md "Platform-Specific Variables in Skills") writes
+ * bundled-script calls as `bash "${CLAUDE_SKILL_DIR:-.}/scripts/x.sh"`, so
+ * the quote/`$`/`{` characters of the wrapping must not hide the
+ * `scripts/x.sh` remainder from the existence check. Unwrapping happens
+ * BEFORE any placeholder gate sees the token: a real invocation's remainder
+ * is placeholder-free, while a templated remainder (`.../scripts/<name>`)
+ * still fails the token shape by construction.
+ */
+function stripShellWrapping(token: string): string {
+  return token
+    .replace(/^["']/, "")
+    .replace(/["']$/, "")
+    .replace(/^\$(?:\{[A-Za-z_][A-Za-z0-9_]*(?::-[^}]*)?\}|[A-Za-z_][A-Za-z0-9_]*)\//, "")
+}
+
+/** Whitespace-delimited tokens of `text` whose unwrapped form matches the skill-local path shape. */
 function localPathTokensIn(text: string): string[] {
-  return text.split(/\s+/).filter((token) => LOCAL_PATH_TOKEN.test(token))
+  return text
+    .split(/\s+/)
+    .map(stripShellWrapping)
+    .filter((token) => LOCAL_PATH_TOKEN.test(token))
 }
 
 /**
@@ -259,6 +301,29 @@ function extractLocalPathCodeSpans(markdown: string): Located[] {
   while ((match = spanRegex.exec(markdown)) !== null) {
     const lineNumber = lineNumberAt(markdown, match.index)
     for (const token of localPathTokensIn(match[1])) out.push({ lineNumber, value: token })
+  }
+  return out
+}
+
+/**
+ * Extracts `@`-include targets from prose (the at-include syntax that inlines
+ * a file at load time, e.g. `@./references/persona-catalog.md` in
+ * ce-code-review's "Included References"). These are load-bearing — a deleted
+ * target breaks the skill at load — yet invisible to the other extractors:
+ * no backticks, no markdown-link syntax, and the `@`/`./` prefix fails the
+ * bare token shape. Placeholder-bearing targets are excluded by the token
+ * character class, as everywhere else.
+ */
+function extractAtIncludeTargets(markdown: string): Located[] {
+  const out: Located[] = []
+  const regex = /(?:^|\s)@(\.\/)?((?:references|scripts|assets)\/[A-Za-z0-9._/-]+)/g
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(markdown)) !== null) {
+    // match.index may sit on the leading whitespace; number the line of the @.
+    out.push({
+      lineNumber: lineNumberAt(markdown, match.index + match[0].indexOf("@")),
+      value: match[2],
+    })
   }
   return out
 }
@@ -351,6 +416,9 @@ function extractLocalReferenceCandidates(markdown: string): Located[] {
   for (const span of extractLocalPathCodeSpans(stripped)) {
     if (isTemplatePlaceholderPath(span.value)) continue
     out.push(span)
+  }
+  for (const target of extractAtIncludeTargets(stripped)) {
+    out.push(target)
   }
   for (const token of extractFencedLocalPathTokens(markdown)) {
     if (isTemplatePlaceholderPath(token.value)) continue
@@ -647,9 +715,28 @@ describe("extractLocalPathCodeSpans", () => {
     ])
   })
 
+  test("unwraps quoted and variable-prefixed path tokens (skill-root-relative by convention)", () => {
+    expect(
+      extractLocalPathCodeSpans(
+        'invoke `bash "${CLAUDE_SKILL_DIR:-.}/scripts/worktree-manager.sh" create <branch>`',
+      ).map((s) => s.value),
+    ).toEqual(["scripts/worktree-manager.sh"])
+    expect(
+      extractLocalPathCodeSpans("run `bash $CLAUDE_SKILL_DIR/scripts/setup.sh`").map((s) => s.value),
+    ).toEqual(["scripts/setup.sh"])
+    expect(
+      extractLocalPathCodeSpans('see `cat "references/guide.md"`').map((s) => s.value),
+    ).toEqual(["references/guide.md"])
+  })
+
   test("skips placeholder-bearing path tokens", () => {
     expect(extractLocalPathCodeSpans("invoked via `bash scripts/<name>`")).toEqual([])
     expect(extractLocalPathCodeSpans("read `references/${topic}.md`")).toEqual([])
+  })
+
+  test("skips variable-prefixed tokens whose remainder is a placeholder", () => {
+    expect(extractLocalPathCodeSpans('run `bash "${CLAUDE_SKILL_DIR:-.}/scripts/<name>"`')).toEqual([])
+    expect(extractLocalPathCodeSpans("read `$CLAUDE_PLUGIN_ROOT/references/${topic}.md`")).toEqual([])
   })
 
   test("extracts multiple path tokens from one span", () => {
@@ -662,6 +749,22 @@ describe("extractLocalPathCodeSpans", () => {
     const sample =
       "see `walkthrough.md`, store in `~/coding-tutor-tutorials/x.md`, use `/tmp/scratch`, ls `the scripts/ dir`"
     expect(extractLocalPathCodeSpans(sample)).toEqual([])
+  })
+})
+
+describe("extractAtIncludeTargets", () => {
+  test("extracts prose at-include targets with and without ./", () => {
+    const sample = "### Persona Catalog\n\n@./references/persona-catalog.md\n\n@references/other.md\n"
+    expect(extractAtIncludeTargets(sample)).toEqual([
+      { lineNumber: 3, value: "references/persona-catalog.md" },
+      { lineNumber: 5, value: "references/other.md" },
+    ])
+  })
+
+  test("skips placeholder-bearing targets and non-path at-tokens", () => {
+    expect(extractAtIncludeTargets("@./references/<topic>.md")).toEqual([])
+    expect(extractAtIncludeTargets("@message = Message.find(params[:id])")).toEqual([])
+    expect(extractAtIncludeTargets("email user@scripts.example.com")).toEqual([])
   })
 })
 
@@ -680,11 +783,24 @@ describe("extractFencedLocalPathTokens", () => {
     ])
   })
 
-  test("skips placeholder-bearing tokens, platform-variable paths, and markdown-link syntax", () => {
+  test("unwraps quoted variable-prefixed invocations (the documented cross-platform style)", () => {
+    const sample = [
+      "```bash",
+      'bash "${CLAUDE_SKILL_DIR:-.}/scripts/worktree-manager.sh" create <branch-name> [from-branch]',
+      'bash "${CLAUDE_SKILL_DIR}/scripts/upstream-version.sh"',
+      "```",
+    ].join("\n")
+    expect(extractFencedLocalPathTokens(sample).map((t) => t.value)).toEqual([
+      "scripts/worktree-manager.sh",
+      "scripts/upstream-version.sh",
+    ])
+  })
+
+  test("skips placeholder-bearing tokens and markdown-link syntax", () => {
     const sample = [
       "```bash",
       "bash scripts/<name>",
-      'bash "${CLAUDE_SKILL_DIR}/scripts/upstream-version.sh"',
+      'bash "${CLAUDE_SKILL_DIR:-.}/scripts/<generated-name>"',
       "```",
       "```markdown",
       "[guide](references/guide.md)",
@@ -788,6 +904,29 @@ describe("extractLocalReferenceCandidates", () => {
 
   test("skips fenced placeholder-bearing path tokens", () => {
     expect(extractLocalReferenceCandidates("```bash\nbash scripts/<generated-name>\n```")).toEqual([])
+  })
+
+  test("collects prose at-include targets (load-time inlining)", () => {
+    const sample = "### Subagent Template\n\n@./references/subagent-template.md\n"
+    expect(extractLocalReferenceCandidates(sample).map((c) => c.value)).toEqual([
+      "references/subagent-template.md",
+    ])
+  })
+
+  test("variable-prefixed invocations are extracted and anchor at the skill root", () => {
+    // The documented cross-platform style: the variable prefix means
+    // "skill-root-relative" (AGENTS.md "Platform-Specific Variables in
+    // Skills"), so the unwrapped remainder must resolve at the skill root —
+    // demonstrated against the real ce-worktree bundled script.
+    const sample =
+      '```bash\nbash "${CLAUDE_SKILL_DIR:-.}/scripts/worktree-manager.sh" create feat/login\n```'
+    expect(extractLocalReferenceCandidates(sample).map((c) => c.value)).toEqual([
+      "scripts/worktree-manager.sh",
+    ])
+    const skillRoot = path.join(PLUGINS_ROOT, "compound-engineering", "skills", "ce-worktree")
+    const resolved = resolveInsideSkill(skillRoot, skillRoot, "scripts/worktree-manager.sh")
+    expect(resolved).not.toBeNull()
+    expect(statSync(resolved!).isFile()).toBe(true)
   })
 })
 
