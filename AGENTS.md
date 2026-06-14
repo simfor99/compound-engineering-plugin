@@ -166,7 +166,19 @@ If two skills need the same supporting file, duplicate it into each skill's dire
 
 This plugin is authored once and converted for multiple agent platforms (Claude Code, Codex, Gemini CLI, etc.). Do not use platform-specific environment variables or string substitutions (e.g., `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_SKILL_DIR}`, `${CLAUDE_SESSION_ID}`, `CODEX_SANDBOX`, `CODEX_SESSION_ID`) in skill content without a graceful fallback that works when the variable is unavailable or unresolved.
 
-**Preferred approach — relative paths:** Reference co-located scripts and files using relative paths from the skill directory (e.g., `bash scripts/my-script.sh ARG`). All major platforms resolve these relative to the skill's directory. No variable prefix needed.
+Whether a relative path resolves against the skill directory depends on *who* resolves it, so the two cases below must be handled differently. Do not assume a bare `scripts/…` path works in both.
+
+**Read-time file references — resolve against the skill directory:** When skill *content* points the agent at a co-located file to read (e.g., "read `references/schema.yaml`"), use a relative path from the skill root. The skill loader resolves these against the skill's own directory on all major platforms — no variable prefix needed. This is the rule in *File References in Skills* above.
+
+**Runtime script invocations via the Bash tool — resolve against the project CWD:** When skill content tells the agent to *execute* a bundled script through the Bash tool, a bare relative path does **not** work on Claude Code. The Bash tool's working directory is the user's project, not the skill directory, so `bash scripts/my-script.sh` resolves to `<project>/scripts/…`, finds nothing, and the step is silently skipped. This is a recurring bug class — see #764 (`ce-worktree`), #811 (`ce-code-review`), and #898 (`ce-compound`). Invoke the script through the skill directory with the `:-.` fallback instead:
+
+```
+bash "${CLAUDE_SKILL_DIR:-.}/scripts/my-script.sh" ARG
+```
+
+`${CLAUDE_SKILL_DIR}` is substituted into SKILL.md content by Claude Code, covering both marketplace-cached installs and `claude --plugin-dir` local dev; it resolves to the skill's own directory, so the invocation is correct there. Note `${CLAUDE_SKILL_DIR}` is a SKILL.md *content* substitution, not an environment variable available inside the executed process — a script that needs its own directory should derive it from `BASH_SOURCE` rather than reading `$CLAUDE_SKILL_DIR` (see `ce-update/scripts/`). The `ce-worktree` and `ce-update` skills are the canonical examples of this pattern.
+
+**Caveat — this only fully resolves on Claude Code.** On other targets (Codex, Gemini CLI, etc.) `${CLAUDE_SKILL_DIR}` is unset, so `:-.` degrades the command to a project-CWD-relative `./scripts/…`. That keeps the command syntactically valid (no unexpanded `${…}` literal) and is no worse than a bare relative path, but it does **not** resolve to the bundled script: those runtimes also execute the shell from the user's project, while the script lives in their own skill store (e.g. `~/.codex/skills/<plugin>/<skill>/scripts/…`). So runtime invocation of a bundled script is currently *unsolved* on Codex/Gemini — the converter (`src/utils/codex-content.ts`) does not rewrite these paths, and in the default `--to codex` mode skills are not emitted by the converter at all (native plugin install owns them). Use `${CLAUDE_SKILL_DIR:-.}` because it is correct on Claude Code and harmless elsewhere — but do not gate a skill's core behavior on a runtime bundled-script call when portability to those targets matters. Prefer logic the agent can perform inline, or content the agent reads (read-time references resolve against the skill dir on all targets).
 
 **When a platform variable is unavoidable:** Use the pre-resolution pattern (`!` backtick syntax) and include explicit fallback instructions in the skill content, so the agent knows what to do if the value is empty, literal, or an error:
 
