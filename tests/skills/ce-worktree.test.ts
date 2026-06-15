@@ -83,6 +83,21 @@ describe("ce-worktree SKILL.md", () => {
     ).toBe(true)
   })
 
+  // PR #948 review: the fallback's relative `.worktrees/` and `.gitignore`
+  // paths resolve against the agent's CWD, which may be a subdirectory — so the
+  // skill must anchor at the repo root first, or it creates `src/.worktrees/...`
+  // and edits `src/.gitignore` instead of the repo-root ones.
+  test("anchors the git fallback at the repo root before using relative paths", () => {
+    expect(
+      SKILL_BODY.includes('cd "$(git rev-parse --show-toplevel)"'),
+      "ce-worktree/SKILL.md must `cd \"$(git rev-parse --show-toplevel)\"` in the git fallback so relative `.worktrees`/`.gitignore` paths resolve at the repo root, not a subdirectory CWD.",
+    ).toBe(true)
+    expect(
+      /run from the repo root/i.test(SKILL_BODY),
+      "ce-worktree/SKILL.md Step 2 must explicitly instruct running the fallback from the repo root.",
+    ).toBe(true)
+  })
+
   // PR #948 review: on a sandbox/permission failure the requested isolation was
   // not created. The skill must not silently fall back to the current checkout —
   // the user chose isolation specifically to avoid touching it.

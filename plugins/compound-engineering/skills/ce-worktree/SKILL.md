@@ -35,13 +35,14 @@ If the harness provides a native worktree primitive — for example an `EnterWor
 
 ## Step 2: Git fallback
 
-Only when there is no native tool **and** Step 0 found no existing isolation. You are in the main checkout here, so the repo root is simply `git rev-parse --show-toplevel`.
+Only when there is no native tool **and** Step 0 found no existing isolation.
 
-1. Choose a meaningful branch name from the work description (e.g. `feat/login`, `fix/email-validation`) — avoid opaque auto-generated names. Pick a base branch (default: origin's default branch, else `main`).
-2. **Ensure `.worktrees/` is gitignored before creating anything**, so worktree contents are never committed: check `git check-ignore -q .worktrees`; if it is not ignored, add a `.worktrees` line to `.gitignore`.
-3. Fetch the base branch without disturbing the current checkout: `git fetch origin <from-branch>`.
-4. Create the worktree: `git worktree add -b <branch-name> .worktrees/<branch-name> origin/<from-branch>`. If `origin/<from-branch>` is unavailable, use the local `<from-branch>` ref instead.
-5. Switch into it: `cd .worktrees/<branch-name>`.
+1. **Run from the repo root.** The `.worktrees/` and `.gitignore` paths below are repo-root-relative, but the skill runs from the user's current directory, which may be a subdirectory — so move to the root first: `cd "$(git rev-parse --show-toplevel)"`. Without this, `.worktrees/<branch>` and the `.gitignore` edit would land in the subdirectory (e.g. `src/.worktrees/...`, `src/.gitignore`) instead of at the repo root.
+2. Choose a meaningful branch name from the work description (e.g. `feat/login`, `fix/email-validation`) — avoid opaque auto-generated names. Pick a base branch (default: origin's default branch, else `main`).
+3. **Ensure `.worktrees/` is gitignored before creating anything**, so worktree contents are never committed: check `git check-ignore -q .worktrees`; if it is not ignored, add a `.worktrees` line to `.gitignore`.
+4. Fetch the base branch without disturbing the current checkout: `git fetch origin <from-branch>`.
+5. Create the worktree: `git worktree add -b <branch-name> .worktrees/<branch-name> origin/<from-branch>`. If `origin/<from-branch>` is unavailable, use the local `<from-branch>` ref instead.
+6. Switch into it: `cd .worktrees/<branch-name>`.
 
 If `git worktree add` fails with a sandbox or permission error, the requested isolation could not be created. **Report the failure and ask the user how to proceed** — do not silently continue in the current checkout, since the user chose isolation specifically to avoid touching it (especially when `ce-work` / `ce-code-review` routed here for the worktree option). Only work in the current checkout if the user explicitly confirms. Do not retry alternative paths automatically.
 
