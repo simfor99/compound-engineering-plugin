@@ -43,7 +43,7 @@ Only when there is no native tool **and** Step 0 found no existing isolation. Yo
 4. Create the worktree: `git worktree add -b <branch-name> .worktrees/<branch-name> origin/<from-branch>`. If `origin/<from-branch>` is unavailable, use the local `<from-branch>` ref instead.
 5. Switch into it: `cd .worktrees/<branch-name>`.
 
-If `git worktree add` fails with a sandbox or permission error, report it and work in the current directory instead — do not retry alternative paths.
+If `git worktree add` fails with a sandbox or permission error, the requested isolation could not be created. **Report the failure and ask the user how to proceed** — do not silently continue in the current checkout, since the user chose isolation specifically to avoid touching it (especially when `ce-work` / `ce-code-review` routed here for the worktree option). Only work in the current checkout if the user explicitly confirms. Do not retry alternative paths automatically.
 
 ## Other worktree operations
 

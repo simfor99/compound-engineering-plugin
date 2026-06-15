@@ -82,4 +82,18 @@ describe("ce-worktree SKILL.md", () => {
       "ce-worktree/SKILL.md must verify `.worktrees` is gitignored before creating a worktree, so its contents are never committed.",
     ).toBe(true)
   })
+
+  // PR #948 review: on a sandbox/permission failure the requested isolation was
+  // not created. The skill must not silently fall back to the current checkout —
+  // the user chose isolation specifically to avoid touching it.
+  test("on a sandbox/permission failure, asks rather than silently using the current checkout", () => {
+    expect(
+      /work in the current (directory|checkout) instead/i.test(SKILL_BODY),
+      "ce-worktree/SKILL.md must not instruct the agent to silently work in the current checkout on a sandbox failure — that defeats the isolation contract.",
+    ).toBe(false)
+    expect(
+      SKILL_BODY.includes("ask the user how to proceed"),
+      "ce-worktree/SKILL.md must report the failure and ask the user how to proceed when worktree creation fails, rather than silently continuing in the current checkout.",
+    ).toBe(true)
+  })
 })
