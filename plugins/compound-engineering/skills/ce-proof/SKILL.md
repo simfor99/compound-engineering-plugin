@@ -26,7 +26,7 @@ Set the display name once per doc session by posting to presence with the `X-Age
 
 ## Publish Mode
 
-The primary use is one-way publishing: take an existing local markdown file (a brainstorm, a plan, a learning, a draft), create a shared Proof doc from it, and hand the user a shareable URL. The local file stays canonical — publishing does not sync anything back to disk. The user can open the link to read, comment, and share with others; the agent can also participate via the edit APIs below when given the URL. Two entry points, identical mechanics (see "Workflow: Create and Share a New Document"):
+The primary use is one-way publishing: take an existing local markdown file (a brainstorm, a plan, a learning, a draft), read its full contents and post them as the new doc's body (see "Workflow: Create and Share a New Document" for the source-file recipe — never publish placeholder content), and hand the user a shareable URL. The local file stays canonical — publishing does not sync anything back to disk. The user can open the link to read, comment, and share with others; the agent can also participate via the edit APIs below when given the URL. Two entry points, identical mechanics (see "Workflow: Create and Share a New Document"):
 
 - **Direct user request** — a bare user phrase naming a local markdown file and asking to share it via Proof: "share this to proof", "publish this to proof", "open this in proof editor so I can review", "get me a proof link for this doc". The file is whichever markdown the user just created, edited, or referenced; if ambiguous, ask which file. This is a first-class entry point — do not require an upstream caller.
 - **Upstream skill handoff** — `ce-brainstorm`, `ce-ideate`, or `ce-plan` finishes a draft and hands it off to publish for human review, passing the file path and title explicitly.
@@ -320,11 +320,18 @@ curl -X POST "https://www.proofeditor.ai/api/agent/abc123/edit/v2?return=minimal
 
 ## Workflow: Create and Share a New Document
 
+**Publishing a local file (the primary case):** read the file and JSON-encode its full contents into the `markdown` field with `jq --rawfile` so newlines, quotes, and backticks are escaped correctly. Never hand-write the body or leave the inline placeholder — that publishes a placeholder doc instead of the source artifact (the plan, requirements, or ideation file the caller passed).
+
 ```bash
-# 1. Create
-RESPONSE=$(curl -s -X POST https://www.proofeditor.ai/share/markdown \
-  -H "Content-Type: application/json" \
-  -d '{"title":"My Doc","markdown":"# Title\n\nContent here."}')
+SRC="docs/plans/2026-05-04-001-feat-foo-plan.md"   # source file from the caller
+TITLE="Plan: Foo"                                   # caller-provided title
+
+# 1. Create — from a local source file:
+RESPONSE=$(jq -n --arg title "$TITLE" --rawfile md "$SRC" '{title:$title, markdown:$md}' \
+  | curl -s -X POST https://www.proofeditor.ai/share/markdown \
+    -H "Content-Type: application/json" -d @-)
+# (Ad-hoc inline content instead of a file:
+#  -d '{"title":"My Doc","markdown":"# Title\n\nContent here."}')
 
 # 2. Extract URL and token
 URL=$(echo "$RESPONSE" | jq -r '.tokenUrl')
