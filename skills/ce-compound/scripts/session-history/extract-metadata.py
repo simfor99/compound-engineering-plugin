@@ -182,6 +182,13 @@ def _extract_user_assistant_text(filepath):
                 if t == "message" and "message" in obj:
                     msg = obj.get("message", {})
                     role = msg.get("role", "")
+                    if role == "bashExecution":
+                        command = msg.get("command", "")
+                        if isinstance(command, str):
+                            chunks.append(command)
+                        # Search command text only. Output is tool output and can
+                        # be large/noisy in the same way as toolResult content.
+                        continue
                     if role not in ("user", "assistant"):
                         continue
                     content = msg.get("content", [])

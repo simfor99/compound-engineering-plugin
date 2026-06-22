@@ -233,6 +233,66 @@ describe("extract-metadata", () => {
       expect(sessions[0].keyword_matches.AUTH).toBeGreaterThan(0)
     })
 
+    test("Pi bashExecution commands are searchable but output is not", async () => {
+      const tempDir = await fs.promises.mkdtemp(
+        path.join(os.tmpdir(), "pi-bash-keyword-")
+      )
+      const sessionPath = path.join(tempDir, "pi-bash-session.jsonl")
+      const lines = [
+        {
+          type: "session",
+          version: 3,
+          id: "test-pi-bash-session",
+          timestamp: "2026-04-07T09:00:00.000Z",
+          cwd: "/Users/test/Code/my-repo",
+        },
+        {
+          type: "message",
+          id: "msg1",
+          parentId: null,
+          timestamp: "2026-04-07T09:01:00.000Z",
+          message: {
+            role: "bashExecution",
+            command: "bun test tests/auth.test.ts",
+            output: "do_not_index_tool_output_token",
+            exitCode: 0,
+            cancelled: false,
+            timestamp: 1775542860000,
+          },
+        },
+      ]
+
+      try {
+        await fs.promises.writeFile(
+          sessionPath,
+          `${lines.map((line) => JSON.stringify(line)).join("\n")}\n`
+        )
+
+        const commandResult = await runScript("extract-metadata.py", [
+          "--keyword",
+          "auth.test.ts",
+          sessionPath,
+        ])
+        expect(commandResult.exitCode).toBe(0)
+        const commandLines = parseJsonLines(commandResult.stdout)
+        const commandSessions = commandLines.filter((l) => !l._meta)
+        expect(commandSessions.length).toBe(1)
+        expect(commandSessions[0].keyword_matches["auth.test.ts"]).toBe(1)
+
+        const outputResult = await runScript("extract-metadata.py", [
+          "--keyword",
+          "do_not_index_tool_output_token",
+          sessionPath,
+        ])
+        expect(outputResult.exitCode).toBe(0)
+        const outputLines = parseJsonLines(outputResult.stdout)
+        expect(outputLines.filter((l) => !l._meta).length).toBe(0)
+        expect(outputLines.find((l) => l._meta).files_matched).toBe(0)
+      } finally {
+        await fs.promises.rm(tempDir, { recursive: true, force: true })
+      }
+    })
+
     test("emits files_matched in _meta and preserves files_processed", async () => {
       const { stdout, exitCode } = await runScript("extract-metadata.py", [
         "--keyword",
