@@ -313,8 +313,8 @@ describe("ce-brainstorm review contract", () => {
     expect(content).toContain("`references/brainstorm-sections.md`")
     expect(content).toContain("`references/handoff.md`")
 
-    // Phase 4 menu exposes agent review as a first-class option and routes to ce-doc-review
-    expect(handoff).toContain("Agent review of Product Contract with `ce-doc-review`")
+    // Phase 4 menu exposes a requirements-critique option as a first-class option and routes to ce-doc-review
+    expect(handoff).toContain("**Pressure-test the requirements**")
     expect(handoff).toContain("Load the `ce-doc-review` skill")
 
     // Subsequent-round residual findings are surfaced as a prose nudge, not a separate menu option
@@ -375,9 +375,9 @@ describe("ce-plan review contract", () => {
     const content = await readRepoFile("skills/ce-plan/references/plan-handoff.md")
 
     // ce-work remains the recommended next-stage action (planning is done; review already ran)
-    expect(content).toContain("**Start `/ce-work`** (recommended) - Implement this plan now, in this session")
+    expect(content).toContain("**Start `/ce-work`** (recommended) - Best for shorter work")
     // The /goal prompt is a separate, mutually-exclusive executor option
-    expect(content).toContain("**Give me the `/goal` prompt**")
+    expect(content).toContain("**Create a `/goal` prompt**")
 
     // Deeper review is a first-class menu fixture so users can engage with surfaced findings
     // without relying on free-form prompting; routed through ce-doc-review without headless mode.

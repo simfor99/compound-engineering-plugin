@@ -53,7 +53,7 @@ describe("ce-plan post-generation menu routing", () => {
     // phrasing tweaks without the assertion becoming brittle.
     const optionFragments: { name: string; fragment: string }[] = [
       { name: "Start /ce-work", fragment: "Start `/ce-work`" },
-      { name: "Give me the /goal prompt", fragment: "Give me the `/goal` prompt" },
+      { name: "Create a /goal prompt", fragment: "Create a `/goal` prompt" },
       { name: "Create Issue", fragment: "Create Issue" },
       { name: "Publish to Proof", fragment: "Publish to Proof" },
       // "Open in browser" is the HTML-mode replacement for Publish to Proof.

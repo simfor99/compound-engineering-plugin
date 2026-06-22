@@ -51,22 +51,22 @@ What would you like to do next? (Pick a number or describe what you want.)
 
 Present only the options that apply. Renumber so visible options stay contiguous starting at 1.
 
-1. **Plan implementation with `ce-plan` (Recommended)** - Move to `ce-plan` to enrich the same unified plan file to `artifact_readiness: implementation-ready`. Shown only when `Resolve Before Planning` is empty.
-2. **Agent review of Product Contract with `ce-doc-review`** - Dispatch reviewer agents to check the Product Contract for coherence, feasibility, scope, and other persona-specific issues; auto-apply safe fixes; route remaining findings interactively. Shown only when a markdown unified plan exists **and `OUTPUT_FORMAT=md`** — ce-doc-review's walkthrough applies markdown-only mutations (`##`/`###` heading inserts, single-file markdown edits via apply-set) and would corrupt an HTML artifact, so HTML brainstorms skip this option until ce-doc-review gains HTML-aware mutation support. Under HTML mode, surface a one-line note above the menu: `Agent review unavailable in output:html mode — ce-doc-review is markdown-only today. Switch to output:md if you want a review pass.`
-3. **Publish to Proof — shareable link** - Publish the markdown unified plan to Every's Proof editor and get a shareable link to read, comment on, or share with others. One-way: the local doc stays canonical. Shown only when a markdown unified plan exists. **Render only when `OUTPUT_FORMAT=md`** (Proof operates on markdown and cannot ingest HTML).
-3. **Open in browser** — open the HTML unified plan locally for review and sharing. Shown only when an HTML unified plan exists. **Render only when `OUTPUT_FORMAT=html`.** Replaces "Publish to Proof" at the same slot under exclusive output mode — the artifact is either markdown OR HTML, never both, so exactly one of the two labels applies per run.
-4. **Build it now with `ce-work` (skip planning)** - Skip planning and move to `ce-work`; suited only to lightweight, well-defined changes where the chat or artifact already contains a sufficient Definition of Done. Hidden by default for requirements-only artifacts because they are not implementation-ready.
+1. **Create the implementation plan** *(recommended)* - Hand off to `ce-plan` and sharpen the requirements into a complete, testable plan. Shown only when `Resolve Before Planning` is empty.
+2. **Create a `/goal` prompt** - A copyable `/goal` prompt that implements straight from the requirements, with no technical-planning step. Quicker to start, but likelier to need rework or miss what a plan would catch. Shown only on hosts with a top-level `/goal` command (Claude Code, Codex). On a host without `/goal`, this slot renders instead as **Build it now** - implement straight from the requirements via `ce-work`, same caveat; shown only when the direct-to-work gate found a sufficient Definition of Done in chat or the artifact. (This is the single skip-planning option: show `/goal` when available — the most autonomous path — otherwise `ce-work`, never both.)
+3. **Pressure-test the requirements** - Dispatch reviewer agents with `ce-doc-review` to find gaps, conflicts, weak premises, and scope issues in the requirements; auto-apply safe fixes; route the rest interactively. Shown only when a markdown unified plan exists **and `OUTPUT_FORMAT=md`** — ce-doc-review's walkthrough applies markdown-only mutations (`##`/`###` heading inserts, single-file markdown edits via apply-set) and would corrupt an HTML artifact, so HTML brainstorms skip this option until ce-doc-review gains HTML-aware mutation support. Under HTML mode, surface a one-line note above the menu: `Requirements review unavailable in output:html mode — ce-doc-review is markdown-only today. Switch to output:md if you want a review pass.`
+4. **Publish to Proof — shareable link** - Publish the markdown unified plan to Every's Proof editor and get a shareable link to read, comment on, or share with others. One-way: the local doc stays canonical. Shown only when a markdown unified plan exists. **Render only when `OUTPUT_FORMAT=md`** (Proof operates on markdown and cannot ingest HTML).
+4. **Open in browser** — open the HTML unified plan locally for review and sharing. Shown only when an HTML unified plan exists. **Render only when `OUTPUT_FORMAT=html`.** Replaces "Publish to Proof" at the same slot under exclusive output mode — the artifact is either markdown OR HTML, never both, so exactly one of the two labels applies per run.
 5. **More clarifying questions to sharpen the doc** - Keep refining scope, edge cases, constraints, and preferences through further dialogue. Always shown.
 
 There is no "done" / "pause" option — the blocking question already waits, and the user ends by dismissing it (Esc) or saying they're finished. The unified plan artifact is already saved.
 
-**Post-review nudge (subsequent rounds only):** If the user has already run `ce-doc-review` this session and residual P0/P1 findings remain unaddressed, add a one-line prose nudge adjacent to the menu (e.g., "Document review flagged 2 P1 findings you may want to address — pick \"Agent review of Product Contract\" to run another pass."). Reference the option by label, not number: the menu renumbers when `Resolve Before Planning` hides `Plan implementation` and `Build it now`, so a hardcoded option number can point users at the wrong action. Do not add a separate menu option; reuse the existing agent-review option. Suppress this nudge when `OUTPUT_FORMAT=html` — the agent-review option is hidden in that mode, so the nudge would point users at a missing action.
+**Post-review nudge (subsequent rounds only):** If the user has already run `ce-doc-review` this session and residual P0/P1 findings remain unaddressed, add a one-line prose nudge adjacent to the menu (e.g., "Document review flagged 2 P1 findings you may want to address — pick \"Pressure-test the requirements\" to run another pass."). Reference the option by label, not number: the menu renumbers when `Resolve Before Planning` hides `Create the implementation plan` and the skip-planning option, so a hardcoded option number can point users at the wrong action. Do not add a separate menu option; reuse the existing `Pressure-test the requirements` option. Suppress this nudge when `OUTPUT_FORMAT=html` — that option is hidden in that mode, so the nudge would point users at a missing action.
 
 #### 4.2 Handle the Selected Option
 
 Selections may be the literal option label (when the user types the label or a close paraphrase) or the option number. Match numbers against the currently-rendered (post-trim) list. Free-form input that doesn't match an option or describe an alternative action should be treated as clarification — ask a follow-up rather than guessing.
 
-**If user selects "Plan implementation with `ce-plan` (Recommended)":**
+**If user selects "Create the implementation plan":**
 
 Immediately load the `ce-plan` skill in the current session. Pass the unified
 plan artifact path when one exists; otherwise pass a concise summary of the
@@ -76,22 +76,36 @@ dossier and the file still exists, also pass its path
 planning verified quotes with `file:line` pointers to start from instead of
 re-scanning the repo. Do not print the closing summary first.
 
-**If user selects "Agent review of Product Contract with `ce-doc-review`":**
+**If user selects "Pressure-test the requirements":**
 
 Load the `ce-doc-review` skill, passing the unified plan path as the argument.
 When ce-doc-review returns "Review complete", return to the Phase 4 options
-and re-render the menu (the Product Contract may have changed, so re-evaluate
-`Resolve Before Planning`, direct-to-work gate, and residual findings). If
+and re-render the menu (the requirements may have changed, so re-evaluate
+`Resolve Before Planning`, the skip-planning gate, and residual findings). If
 residual P0/P1 findings remain unaddressed, include the post-review nudge
 above the menu. Do not show the closing summary yet.
 
-**If user selects "Build it now with `ce-work` (skip planning)":**
+**If user selects the skip-planning option ("Create a `/goal` prompt", or "Build it now" on hosts without `/goal`):**
 
-Only show this option when the direct-to-work gate explicitly found a
-sufficient Definition of Done in chat or in the artifact. Immediately load the
-`ce-work` skill in the current session using the finalized brainstorm output
-as context. If a compact unified plan exists, pass its path. Do not print the
-closing summary first.
+This is the single skip-planning slot — execute either as a `/goal` prompt or
+via `ce-work`, never both.
+
+- **On a host with `/goal` (Claude Code, Codex):** print one copyable `/goal`
+  prompt and tell the user to paste it at the start of a message. The prompt
+  uses the requirements-only unified plan as authority and instructs the goal
+  to derive its own approach, units, and verification (there is no Planning
+  Contract or Verification Contract — this is the skip-planning path),
+  implement to a working state and verify it, stop and surface any open
+  product question, run applicable quality gates, and not open a PR. **Do not
+  also load `ce-work`** — the user's `/goal` is the executor. After printing,
+  return to the Phase 4 options.
+- **On a host without `/goal`:** only when the skip-planning gate explicitly
+  found a sufficient Definition of Done in chat or the artifact, immediately
+  load the `ce-work` skill in the current session using the finalized
+  brainstorm output as context; pass the unified plan path when one exists. Do
+  not also print a `/goal` prompt.
+
+Do not print the closing summary first.
 
 **If user selects "More clarifying questions to sharpen the doc":** Return to Phase 1.3 (Collaborative Dialogue) and continue asking the user clarifying questions one at a time to further refine scope, edge cases, constraints, and preferences. Continue until the user is satisfied, then return to Phase 4. Do not show the closing summary yet.
 

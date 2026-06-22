@@ -86,10 +86,12 @@ describe("unified plan artifact contract", () => {
   })
 
   test("brainstorm handoff passes the unified plan path to ce-plan", () => {
-    expect(brainstormHandoff).toContain("same unified plan file")
     expect(brainstormHandoff).toContain("Pass the unified")
     expect(brainstormHandoff).toContain("Recommended next step: `ce-plan <plan artifact path>`")
-    expect(brainstormHandoff).toContain("Hidden by default for requirements-only artifacts")
+    // Recommended path is planning; the skip-planning execution slot is a single
+    // option (/goal when available, else ce-work) gated to sufficient definition.
+    expect(brainstormHandoff).toContain("Create the implementation plan")
+    expect(brainstormHandoff).toContain("single skip-planning option")
   })
 
   test("ce-plan enriches unified plans in place and preserves legacy inputs", () => {
@@ -255,7 +257,7 @@ describe("unified plan artifact contract", () => {
   test("post-plan menu offers /goal prompt as a mutually-exclusive executor", () => {
     const planHandoff = readRepoFile("skills/ce-plan/references/plan-handoff.md")
     for (const doc of [planSkill, planHandoff]) {
-      expect(doc).toContain("Give me the `/goal` prompt")
+      expect(doc).toContain("Create a `/goal` prompt")
       // The /goal option must not also run ce-work (tail-ownership guard).
       expect(doc).toMatch(/Do not invoke `ce-work`/i)
     }
