@@ -7,29 +7,35 @@ function readRepoFile(relativePath: string): string {
 }
 
 const planSections = readRepoFile(
-  "plugins/compound-engineering/skills/ce-plan/references/plan-sections.md",
+  "skills/ce-plan/references/plan-sections.md",
 )
 const brainstormSections = readRepoFile(
-  "plugins/compound-engineering/skills/ce-brainstorm/references/brainstorm-sections.md",
+  "skills/ce-brainstorm/references/brainstorm-sections.md",
 )
-const planSkill = readRepoFile("plugins/compound-engineering/skills/ce-plan/SKILL.md")
-const brainstormSkill = readRepoFile("plugins/compound-engineering/skills/ce-brainstorm/SKILL.md")
+const planSkill = readRepoFile("skills/ce-plan/SKILL.md")
+const brainstormSkill = readRepoFile("skills/ce-brainstorm/SKILL.md")
 const brainstormHandoff = readRepoFile(
-  "plugins/compound-engineering/skills/ce-brainstorm/references/handoff.md",
+  "skills/ce-brainstorm/references/handoff.md",
 )
 const universalBrainstorming = readRepoFile(
-  "plugins/compound-engineering/skills/ce-brainstorm/references/universal-brainstorming.md",
+  "skills/ce-brainstorm/references/universal-brainstorming.md",
 )
-const ceWork = readRepoFile("plugins/compound-engineering/skills/ce-work/SKILL.md")
-const ceWorkBeta = readRepoFile("plugins/compound-engineering/skills/ce-work-beta/SKILL.md")
-const lfg = readRepoFile("plugins/compound-engineering/skills/lfg/SKILL.md")
-const docReview = readRepoFile("plugins/compound-engineering/skills/ce-doc-review/SKILL.md")
+const ceWork = readRepoFile("skills/ce-work/SKILL.md")
+const ceWorkEngines = readRepoFile(
+  "skills/ce-work/references/execution-engines.md",
+)
+const planMarkdownRendering = readRepoFile(
+  "skills/ce-plan/references/markdown-rendering.md",
+)
+const ceWorkBeta = readRepoFile("skills/ce-work-beta/SKILL.md")
+const lfg = readRepoFile("skills/lfg/SKILL.md")
+const docReview = readRepoFile("skills/ce-doc-review/SKILL.md")
 const docReviewTemplate = readRepoFile(
-  "plugins/compound-engineering/skills/ce-doc-review/references/subagent-template.md",
+  "skills/ce-doc-review/references/subagent-template.md",
 )
-const codeReview = readRepoFile("plugins/compound-engineering/skills/ce-code-review/SKILL.md")
-const proof = readRepoFile("plugins/compound-engineering/skills/ce-proof/SKILL.md")
-const ideate = readRepoFile("plugins/compound-engineering/skills/ce-ideate/references/post-ideation-workflow.md")
+const codeReview = readRepoFile("skills/ce-code-review/SKILL.md")
+const proof = readRepoFile("skills/ce-proof/SKILL.md")
+const ideate = readRepoFile("skills/ce-ideate/references/post-ideation-workflow.md")
 const agents = readRepoFile("AGENTS.md")
 
 describe("unified plan artifact contract", () => {
@@ -148,5 +154,58 @@ describe("unified plan artifact contract", () => {
     expect(ideate).toContain("requirements-only unified plan under `docs/plans/`")
     expect(agents).toContain("New `ce-brainstorm` outputs are requirements-only unified plans")
     expect(agents).toContain("Historical `docs/brainstorms/*-requirements.*` files remain readable legacy inputs")
+  })
+
+  test("Goal Launch Block stays thin and does not duplicate authoritative sections", () => {
+    expect(planSections).toContain("Goal Launch Block")
+    expect(planSections).toMatch(/thin[\s\S]{0,200}does not duplicate the requirements, verification matrix/i)
+    expect(planSections).toContain("It points to authoritative")
+  })
+
+  test("consuming skills carry a pre-read / heading-scan algorithm, not full-doc-first", () => {
+    // The reader strategy lives in the skills, not only in the document.
+    // plan-sections names the heading map; ce-work builds it before reading.
+    expect(planSections).toContain("the heading map")
+    expect(planSections).toContain("consuming skills still own the")
+    expect(ceWork).toContain("do **not** read the whole document first")
+  })
+
+  test("Verification Contract requires repo-specific commands, not generic run tests", () => {
+    expect(planSections).toContain("Repo-specific test commands and quality gates")
+    expect(planSections).toMatch(/repo-specific commands and quality gates/i)
+    expect(planSections).toMatch(/Avoid generic "run tests"/i)
+    expect(planMarkdownRendering).toMatch(/concrete repo commands such as `bun test` rather than generic "run tests"/i)
+  })
+
+  test("contract guides measurable exit thresholds and dead-code cleanup for long goal runs", () => {
+    // Reinforced by Kundel's /goal guide: optimization-shaped goals need a
+    // measurable exit threshold, and long autonomous runs must remove
+    // abandoned-attempt code before declaring done.
+    expect(planSections).toMatch(/optimization-shaped/i)
+    expect(planSections).toMatch(/measurable threshold|metric target/i)
+    expect(planSections).toContain("ce-optimize")
+    expect(planSections).toMatch(/abandoned-attempt code is removed|dead-end and experimental code/i)
+    expect(ceWorkEngines).toMatch(/dead-end or experimental code .* has been removed|experimental code from approaches that did not pan out/i)
+  })
+
+  test("conversion/pipeline override keeps one canonical discovery target", () => {
+    // Same-basename .md/.html siblings must not become competing latest plans.
+    expect(planSkill).toContain("new canonical path")
+    expect(planSkill).toMatch(/report old path and new canonical path/i)
+    expect(planSkill).toContain("the local plan file stays canonical")
+  })
+
+  test("ce-work defines the execution-engine selection lane", () => {
+    expect(ceWork).toContain("Choose Execution Engine")
+    expect(ceWork).toContain("references/execution-engines.md")
+    expect(ceWork).toContain("dynamic-workflow")
+    expect(ceWork).toMatch(/prompt-emission only|never invoked from inside this skill/i)
+
+    expect(ceWorkEngines).toContain("Probe host capability")
+    expect(ceWorkEngines).toContain("/goal Implement <plan-path>")
+    expect(ceWorkEngines).toContain("ultracode:")
+    expect(ceWorkEngines).toMatch(/Resume the correct tail/i)
+    expect(ceWorkEngines).toContain("standalone_shipping_skipped: true")
+    expect(ceWorkEngines).toMatch(/do not open a PR|must not open a PR/i)
   })
 })

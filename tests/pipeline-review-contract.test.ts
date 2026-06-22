@@ -548,9 +548,13 @@ describe("ce-doc-review contract", () => {
     expect(synthesis).toContain("fixes_applied_count == 0")
     expect(synthesis).toContain("zero-actionable case")
 
-    // Next-stage substitution rules documented
-    expect(synthesis).toContain("Requirements document")
-    expect(synthesis).toContain("Plan document")
+    // Next-stage substitution rules documented, readiness-aware: a
+    // requirements-only artifact routes to planning, implementation-ready to
+    // execution (unified and legacy classifications both covered).
+    expect(synthesis).toContain("requirements-only unified plan")
+    expect(synthesis).toContain("implementation-ready unified plan")
+    expect(synthesis).toContain("legacy standalone requirements doc")
+    expect(synthesis).toContain("legacy implementation plan")
     expect(synthesis).toContain("ce-plan")
     expect(synthesis).toContain("ce-work")
   })

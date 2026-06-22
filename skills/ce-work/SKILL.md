@@ -137,9 +137,11 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - Include testing and quality check tasks
    - Keep tasks specific and completable
 
-4. **Choose Execution Strategy**
+4. **Choose Execution Engine, then Strategy**
 
-   After creating the task list, decide how to execute based on the plan's size and dependency structure:
+   For an implementation-ready unified code plan, first pick the **engine** that runs implementation: inline/subagent (default and only callable engine on Claude Code), goal-mode, or dynamic-workflow. Goal-mode and dynamic-workflow are usable only when the host exposes a callable primitive for them; on Claude Code they are prompt-emission only, never invoked from inside this skill. Prefer dynamic-workflow over goal-mode for large fan-out plans (many independent U-IDs, codebase-wide sweeps, migrations, adversarial cross-checking). Read `references/execution-engines.md` for the host-capability probe, the plan-shape selection table, the copyable goal-mode/`ultracode:` prompts, and the resume-tail rules. An engine choice never changes tail ownership — after implementation, resume standalone quality gates in normal use, or return the caller-owned-tail envelope when invoked by `lfg`. Legacy and bare-prompt work skip this and use the inline/subagent engine directly.
+
+   For the inline/subagent engine, decide the dispatch **strategy** based on the plan's size and dependency structure:
 
    | Strategy | When to use |
    |----------|-------------|
@@ -376,13 +378,12 @@ Return:
 - `behavior_change`: whether behavior-bearing code changed
 - `standalone_shipping_skipped: true`
 
-Goal-mode or dynamic-workflow engines may be used inside `ce-work` only when
-the host supports them and only for implementation. If the host cannot expose a
-callable goal/dynamic-workflow primitive from a skill, print a copyable prompt
-only in interactive standalone use; in caller-owned-tail mode, return a blocker
-instead of stranding LFG behind a manual copy/paste step. Goal prompts generated
-here explicitly do not open PRs, run the owner workflow tail, or bypass the
-caller-owned gates.
+Engine selection (`references/execution-engines.md`) still applies in this mode,
+but only for implementation. In caller-owned-tail mode do not emit a copyable
+goal/workflow prompt — a manual paste step strands the caller; run
+inline/subagents or return a blocker instead. Any goal/workflow engine used here
+must not open a PR, run the owner workflow tail, or bypass the caller-owned
+gates.
 
 ## Key Principles
 

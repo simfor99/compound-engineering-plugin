@@ -167,9 +167,16 @@ present. They carry the contracts downstream consumers depend on.
 - **Verification Contract** — repo-specific commands and quality gates,
   including which tests prove the plan, when `release:validate` applies, and
   what behavioral skill evaluation is required. Avoid generic "run tests"
-  language when the repo has concrete commands.
+  language when the repo has concrete commands. When the goal is
+  optimization-shaped (build time, latency, coverage, bundle size), express a
+  measurable threshold as the exit criterion (e.g., "p95 latency < 200ms",
+  "build time reduced 30%") and consider routing to `ce-optimize` — a metric
+  target is a sharper done signal for a long-running goal than a boolean check.
 - **Definition of Done** — global and per-unit done criteria. This is the
-  completion contract for `/goal` or equivalent long-running workflows.
+  completion contract for `/goal` or equivalent long-running workflows. Include
+  a cleanup criterion: a long autonomous run accumulates dead-end and
+  experimental code from approaches that did not pan out; declaring done
+  requires that abandoned-attempt code is removed, not left in the diff.
 
 ## Include when material
 

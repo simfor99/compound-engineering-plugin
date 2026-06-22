@@ -84,7 +84,7 @@ type: feat
 date: 2026-06-18
 artifact_contract: ce-unified-plan/v1
 artifact_readiness: requirements-only # requirements-only | implementation-ready
-product_contract_source: ce-brainstorm # ce-brainstorm | ce-plan-bootstrap | legacy:<path>
+product_contract_source: ce-brainstorm # ce-brainstorm | ce-plan-bootstrap | legacy-requirements
 execution: code # optional; same semantics as today
 ---
 
@@ -371,9 +371,10 @@ Required fields:
 | Quality gates | Simplification, code review, doc review, security review, or design review triggers with concrete thresholds or conditions. |
 | Manual verification | Human-visible checks, screenshots, browser flows, CLI examples, generated artifact inspection, or operational validation. |
 | Test coverage expectations | Happy path, edge case, error path, integration, and regression categories that apply to this plan. |
+| Metric thresholds | When the goal is optimization-shaped (build time, latency, coverage, bundle size), a measurable exit threshold (e.g., "p95 latency < 200ms", "build time reduced 30%") rather than a boolean check. Route metric-driven loops to `ce-optimize`. |
 | Known skips | Checks intentionally skipped and the reason the skip is acceptable. |
 
-The Goal Launch Block and Definition of Done should reference this section rather than relying on generic phrases like "run tests." Per-unit `Verification` fields still name local unit checks; the Verification Contract names global and conditional repo checks.
+The Goal Launch Block and Definition of Done should reference this section rather than relying on generic phrases like "run tests." Per-unit `Verification` fields still name local unit checks; the Verification Contract names global and conditional repo checks. A metric target is a sharper done signal for a long-running goal than a boolean check, because the goal runner re-evaluates it after each turn (Claude Code) or drives toward it autonomously over hours (Codex) — see the `/goal` guide in Sources & Research.
 
 ### Definition of Done
 
@@ -390,6 +391,7 @@ Required once the artifact is implementation-ready. Requirements-only skeletons 
 - **Regression check:** Relevant repo checks pass, or remaining failures are documented as unrelated.
 - **Docs / ops complete:** Required docs, config, migration, rollout, or operational notes are updated.
 - **Review readiness:** No unresolved P0/P1 doc-review or code-review findings remain.
+- **Cleanup complete:** Dead-end and experimental code from approaches that did not pan out is removed from the diff, not left behind (matters most for long autonomous goal runs that accumulate abandoned attempts).
 - **Handoff complete:** Final summary names changed files, checks run, deferred work, and residual risks.
 
 ### Per-Unit DoD
@@ -411,10 +413,10 @@ The old section name `Goal-Mode Prompt` should be replaced by `Goal Launch Block
 - **Goal:** Replace the separate brainstorm/plan artifact model with a single documented contract that both skills consume.
 - **Requirements:** R1, R2, R3, R5, R6, R7, R8, R9.
 - **Files:**
-  - Modify: `plugins/compound-engineering/skills/ce-plan/references/plan-sections.md`
-  - Modify or replace: `plugins/compound-engineering/skills/ce-brainstorm/references/brainstorm-sections.md`
-  - Modify: `plugins/compound-engineering/skills/ce-plan/references/markdown-rendering.md`
-  - Modify: `plugins/compound-engineering/skills/ce-plan/references/html-rendering.md`
+  - Modify: `skills/ce-plan/references/plan-sections.md`
+  - Modify or replace: `skills/ce-brainstorm/references/brainstorm-sections.md`
+  - Modify: `skills/ce-plan/references/markdown-rendering.md`
+  - Modify: `skills/ce-plan/references/html-rendering.md`
   - Mirror rendering changes into `ce-brainstorm` and `ce-ideate` reference copies if parity tests still require them.
 - **Approach:** Introduce `artifact_contract: ce-unified-plan/v1`, `artifact_readiness`, `product_contract_source`, `Goal Launch Block`, `Reader Index`, `Goal Capsule`, `Product Contract`, `Planning Contract`, `Verification Contract`, and `Definition of Done` as the new contract. Keep no-status language, and define readiness as document completeness rather than work progress.
 - **Test scenarios:**
@@ -431,9 +433,9 @@ The old section name `Goal-Mode Prompt` should be replaced by `Goal Launch Block
 - **Goal:** Make `ce-brainstorm` write the first version of the unified plan in `docs/plans/`.
 - **Requirements:** R1, R2, R5, R9.
 - **Files:**
-  - Modify: `plugins/compound-engineering/skills/ce-brainstorm/SKILL.md`
-  - Modify: `plugins/compound-engineering/skills/ce-brainstorm/references/handoff.md`
-  - Modify: `plugins/compound-engineering/skills/ce-brainstorm/references/synthesis-summary.md`
+  - Modify: `skills/ce-brainstorm/SKILL.md`
+  - Modify: `skills/ce-brainstorm/references/handoff.md`
+  - Modify: `skills/ce-brainstorm/references/synthesis-summary.md`
   - Modify tests under `tests/skills/ce-brainstorm-*`
 - **Approach:** Phase 3 writes `docs/plans/YYYY-MM-DD-NNN-<type>-<topic>-plan.<md|html>` with `artifact_readiness: requirements-only` and `product_contract_source: ce-brainstorm`. It fills `Reader Index`, `Goal Capsule`, and `Product Contract`, omits empty plan-only sections, and routes next steps to `ce-plan` with the same path.
 - **Test scenarios:**
@@ -451,10 +453,10 @@ The old section name `Goal-Mode Prompt` should be replaced by `Goal Launch Block
 - **Goal:** Make `ce-plan` detect requirements-only unified plans, preserve product contract content, and enrich the same file.
 - **Requirements:** R2, R3, R4, R6, R7, R8, R11.
 - **Files:**
-  - Modify: `plugins/compound-engineering/skills/ce-plan/SKILL.md`
-  - Modify: `plugins/compound-engineering/skills/ce-plan/references/synthesis-summary.md`
-  - Modify: `plugins/compound-engineering/skills/ce-plan/references/deepening-workflow.md`
-  - Modify: `plugins/compound-engineering/skills/ce-plan/references/plan-handoff.md`
+  - Modify: `skills/ce-plan/SKILL.md`
+  - Modify: `skills/ce-plan/references/synthesis-summary.md`
+  - Modify: `skills/ce-plan/references/deepening-workflow.md`
+  - Modify: `skills/ce-plan/references/plan-handoff.md`
   - Modify tests under `tests/skills/ce-plan-*`
 - **Approach:** Phase 0 searches for explicit paths first, then recent unified plans with `artifact_readiness: requirements-only`, then legacy `docs/brainstorms/*-requirements.*`. When enriching, `ce-plan` updates `artifact_readiness: implementation-ready`, fills `Planning Contract`, `Implementation Units`, `Verification Contract`, `Definition of Done`, and the implementation-ready Goal Launch Block, and preserves R/A/F/AE IDs.
 - **Test scenarios:**
@@ -471,17 +473,17 @@ The old section name `Goal-Mode Prompt` should be replaced by `Goal Launch Block
 - **Goal:** Prevent downstream skills from treating requirements-only unified plans as implementation-ready.
 - **Requirements:** R4, R8, R10.
 - **Files:**
-  - Modify: `plugins/compound-engineering/skills/ce-work/SKILL.md`
-  - Modify or explicitly guard: `plugins/compound-engineering/skills/ce-work-beta/SKILL.md`
-  - Modify: `plugins/compound-engineering/skills/lfg/SKILL.md`
-  - Modify: `plugins/compound-engineering/skills/ce-doc-review/SKILL.md`
-  - Modify: `plugins/compound-engineering/skills/ce-doc-review/references/subagent-template.md`
-  - Modify: `plugins/compound-engineering/skills/ce-doc-review/references/synthesis-and-presentation.md`
-  - Modify: `plugins/compound-engineering/skills/ce-proof/SKILL.md`
-  - Modify: `plugins/compound-engineering/skills/ce-code-review/SKILL.md`
-  - Modify or document exception: `plugins/compound-engineering/skills/ce-riffrec-feedback-analysis/SKILL.md`
-  - Modify or document exception: `plugins/compound-engineering/skills/ce-riffrec-feedback-analysis/references/extensive-analysis.md`
-  - Modify or document exception: `plugins/compound-engineering/skills/ce-riffrec-feedback-analysis/scripts/analyze_riffrec_zip.py`
+  - Modify: `skills/ce-work/SKILL.md`
+  - Modify or explicitly guard: `skills/ce-work-beta/SKILL.md`
+  - Modify: `skills/lfg/SKILL.md`
+  - Modify: `skills/ce-doc-review/SKILL.md`
+  - Modify: `skills/ce-doc-review/references/subagent-template.md`
+  - Modify: `skills/ce-doc-review/references/synthesis-and-presentation.md`
+  - Modify: `skills/ce-proof/SKILL.md`
+  - Modify: `skills/ce-code-review/SKILL.md`
+  - Modify or document exception: `skills/ce-riffrec-feedback-analysis/SKILL.md`
+  - Modify or document exception: `skills/ce-riffrec-feedback-analysis/references/extensive-analysis.md`
+  - Modify or document exception: `skills/ce-riffrec-feedback-analysis/scripts/analyze_riffrec_zip.py`
   - Modify related docs and tests.
 - **Approach:** `ce-work` should route `artifact_readiness: requirements-only` files to `ce-plan` when explicitly receiving a plan, and blank `ce-work` should stop rather than silently falling back when the newest plan artifact is requirements-only, knowledge-work, approach-plan, or otherwise not implementation-ready code. For implementation-ready unified plans, `ce-work` must replace its current full-document-first read with the metadata, heading-map, Reader Index, Goal Capsule, DoD, and active-unit extraction strategy. `ce-work` may also choose a supported goal-mode or dynamic-workflow engine for implementation, but must resume the correct tail after implementation: standalone quality gates in normal use, or caller-owned-tail return when invoked by LFG. `lfg` should verify that `ce-plan` produced an implementation-ready code plan before invoking `ce-work`, pass the exact plan path to `ce-work mode:caller-owned-tail <plan-path>` (or equivalent explicit syntax), and stop with a clear message for requirements-only, universal, answer-seeking, or approach-plan outputs that are not code-executable. `ce-doc-review` should classify unified artifacts by readiness and `product_contract_source`, reviewing Product Contract and Planning Contract with different lenses. HTML unified artifacts should remain report-only or skipped until `ce-doc-review` has a real HTML-safe mutation path; do not claim safe HTML mutation without implementing it. `ce-proof` should publish markdown unified plans only and label them by readiness; HTML unified artifacts stay on the local browser/open path.
 - **Test scenarios:**
@@ -535,8 +537,8 @@ The old section name `Goal-Mode Prompt` should be replaced by `Goal Launch Block
 - **Goal:** Teach users that `ce-brainstorm -> ce-plan -> ce-work` is now one artifact moving through readiness states.
 - **Requirements:** R1, R2, R3, R4, R10.
 - **Files:**
-  - Modify: `plugins/compound-engineering/skills/ce-ideate/SKILL.md`
-  - Modify: `plugins/compound-engineering/skills/ce-ideate/references/post-ideation-workflow.md`
+  - Modify: `skills/ce-ideate/SKILL.md`
+  - Modify: `skills/ce-ideate/references/post-ideation-workflow.md`
   - Modify: `docs/skills/ce-brainstorm.md`
   - Modify: `docs/skills/ce-ideate.md`
   - Modify: `docs/skills/ce-plan.md`
@@ -734,6 +736,7 @@ Do not migrate historical `docs/brainstorms/` files. They are durable records an
 
 - OpenAI Codex manual, fetched with the local `openai-docs` skill helper from `https://developers.openai.com/codex/codex-manual.md`: Codex recommends prompts include goal, context, constraints, and done criteria; Goal mode uses a persistent objective and completion criteria; subagents help isolate noisy exploration.
 - Anthropic Claude Code goal docs: `https://code.claude.com/docs/en/goal`. Claude `/goal` evaluates a visible condition after each turn; effective conditions need a measurable end state, a stated check, and important constraints.
+- Dominik Kundel (OpenAI), "A guide to /goal": `https://www.linkedin.com/pulse/guide-goal-dominik-kundel-webic` (also posted at `https://x.com/dkundel/status/2062650378089594955`). Codex goal mode drives toward a concrete outcome autonomously over hours/days (120+ hour runs cited). Key reinforcements adopted here: the goal prompt is direction-plus-exit-criteria and must stay short (durable scope belongs in the document, not the prompt, because long runs forget it); prefer measurable thresholds as exit criteria; provide a starting point and progress-measurement tooling; avoid pure-visual done criteria; review and remove dead-end/experimental code after completion. Codex's draft-PR progress-visibility pattern is intentionally NOT adopted — it conflicts with this plan's tail-ownership rule that the goal does not open a PR.
 - Anthropic dynamic workflows docs: `https://code.claude.com/docs/en/workflows`. Dynamic workflows move orchestration into a script so intermediate results stay out of the main context.
 - Anthropic Claude Code commands docs: `https://code.claude.com/docs/en/commands`. Commands are recognized at the start of a user message and include workflow controls.
 - Anthropic Claude Code skills docs: `https://code.claude.com/docs/en/skills`. Skills are prompt-based instructions that Claude loads or users invoke with `/skill-name`; they are not documented as a general mechanism for invoking arbitrary slash commands from inside a skill.
