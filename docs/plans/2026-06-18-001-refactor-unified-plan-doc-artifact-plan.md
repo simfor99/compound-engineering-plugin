@@ -619,7 +619,7 @@ This document is suitable for top-level `/goal` execution only if the launching 
 | Stop conditions | Goal Launch Block says to stop on blocker, wrong naming/config migration, or unsatisfied DoD. | Ready |
 | Tail ownership | Goal Launch Block is top-level: it owns implementation quality gates but does not open a PR. | Ready |
 | Context discipline | Goal Launch Block and Reader Strategy tell the agent what to read first and when to avoid full-doc reads. | Ready |
-| Deferred decisions | Open Questions identify naming/config decisions that may need to stop execution. | Ready with known open questions |
+| Deferred decisions | Open Questions are **non-blocking**: naming/config decisions carried sensible defaults during implementation (e.g., `requirements-only`/`implementation-ready`; both output config keys retained). Per the readiness rule, a *blocking* open question would have kept this `requirements-only`; these did not. | Ready (open questions deferred) |
 
 For top-level `/goal`, the launch prompt should include:
 
@@ -680,21 +680,28 @@ If any readiness row is not satisfied, the correct goal is not "implement"; it i
 
 ## Goal Launch Block
 
+> This is a **pre-contract meta-plan**: it *defines* the `ce-unified-plan/v1`
+> contract and therefore predates it. It uses classic plan sections (Summary,
+> Requirements, Key Technical Decisions, Implementation Units, Definition of
+> Done) rather than the v1 registry (Reader Index / Goal Capsule / Product
+> Contract / Planning Contract / Verification Contract). The read-first list
+> below names the sections this document actually contains.
+
 ```text
 /goal Implement docs/plans/2026-06-18-001-refactor-unified-plan-doc-artifact-plan.md through its Definition of Done.
 
 Read first:
 1. Goal Execution Readiness
-2. Reader Index
-3. Goal Capsule
-4. Verification Contract
-5. Definition of Done
-6. Implementation Units heading map
-7. Product Contract and Planning Contract sections only as referenced by the active U-ID
+2. Summary
+3. Requirements
+4. Key Technical Decisions
+5. Implementation Units heading map
+6. Definition of Done
+7. Risks & Mitigations
 
 Authority:
-- Product Contract requirements define the behavior that must hold after the refactor.
-- Planning Contract and Key Technical Decisions define pinned design choices.
+- Requirements define the behavior that must hold after the refactor.
+- Key Technical Decisions define pinned design choices.
 - Implementation Units define the work order and verification expectations.
 - Risks & Mitigations define constraints to preserve during implementation.
 

@@ -156,10 +156,10 @@ describe("unified plan artifact contract", () => {
     expect(agents).toContain("Historical `docs/brainstorms/*-requirements.*` files remain readable legacy inputs")
   })
 
-  test("Goal Launch Block stays thin and does not duplicate authoritative sections", () => {
+  test("Goal Launch Block does not duplicate authoritative sections", () => {
     expect(planSections).toContain("Goal Launch Block")
-    expect(planSections).toMatch(/thin[\s\S]{0,200}does not duplicate the requirements, verification matrix/i)
-    expect(planSections).toContain("It points to authoritative")
+    expect(planSections).toMatch(/does not duplicate the full requirements,[\s\S]{0,60}verification matrix/i)
+    expect(planSections).toMatch(/points to\s+document sections for detail/i)
   })
 
   test("consuming skills carry a pre-read / heading-scan algorithm, not full-doc-first", () => {
@@ -217,6 +217,39 @@ describe("unified plan artifact contract", () => {
     expect(planSkill).toMatch(/whenever Phase 0\.2 resolved an upstream Product Contract source/i)
     expect(planSkill).toMatch(/enrichment flow is brainstorm-sourced and MUST fire this gate/i)
     expect(planSkill).toMatch(/Skip Phase 0\.7 only in solo invocation|Skip Phase 5\.1\.5 only in solo invocation/i)
+  })
+
+  test("Goal Launch Block guidance is evaluator-complete and splits human vs pipeline launch", () => {
+    // Codex #972-review P1/P2: goal prompt is also the completion criteria, so
+    // it must be self-contained; pipeline launch must not show /goal.
+    expect(planSections).toMatch(/evaluator-complete/i)
+    expect(planSections).toMatch(/objective, stop\/blocker rules/i)
+    expect(planSections).toContain("Human standalone launch")
+    expect(planSections).toContain("Pipeline/caller launch")
+    expect(planSections).toMatch(/never `\/goal`/i)
+    expect(planSections).toMatch(/markdown is the\s+execution artifact/i)
+  })
+
+  test("implementation-ready requires zero launch-blocking open questions", () => {
+    expect(planSections).toMatch(/no\s+launch-blocking open question remains/i)
+    expect(planSections).toMatch(/stays\s+`requirements-only`/i)
+    expect(planSections).toMatch(/blocker-resolution \/ \s*planning goal|blocker-resolution \/\s+planning goal/i)
+  })
+
+  test("ce-plan records a Product Contract preservation note on in-place enrichment", () => {
+    expect(planSkill).toContain("Product Contract preservation")
+    expect(planSkill).toMatch(/Product Contract unchanged|changed: .*R-IDs/)
+  })
+
+  test("execution engines define a Codex lane, progress-visibility, and compaction recovery", () => {
+    // Codex #972-review P1 #3 / P2 #9 / P2 #10
+    expect(ceWorkEngines).toContain("Codex specifically")
+    expect(ceWorkEngines).toMatch(/not an awaitable subroutine/i)
+    expect(ceWorkEngines).toContain("Progress visibility (independent of tail ownership)")
+    expect(ceWorkEngines).toMatch(/must not open any PR/i)
+    expect(ceWorkEngines).toMatch(/draft\*?\*? PR only/i)
+    expect(ceWorkEngines).toMatch(/re-open the plan path/i)
+    expect(ceWorkEngines).toMatch(/compacted to a summary/i)
   })
 
   test("ce-work defines the execution-engine selection lane", () => {

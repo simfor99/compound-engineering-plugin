@@ -35,7 +35,13 @@ When the artifact is meant to be consumed by implementation agents, use:
     complete and the artifact is not executable.
   - `implementation-ready` — Product Contract, Planning Contract,
     Implementation Units, Verification Contract, and Definition of Done are
-    complete enough for `ce-work`, `/goal`, or an equivalent executor.
+    complete enough for `ce-work`, `/goal`, or an equivalent executor, **and no
+    launch-blocking open question remains**. A plan that is otherwise complete
+    but still has a blocking product/architecture question stays
+    `requirements-only`; its Goal Launch Block becomes a blocker-resolution /
+    planning goal, not an implementation goal. Deferred (non-blocking) questions
+    do not hold readiness back — mark each open question as blocking or deferred
+    so this distinction is explicit.
 - **`product_contract_source`** — where the Product Contract came from:
   `ce-brainstorm`, `ce-plan-bootstrap`, `legacy-requirements`, or another
   explicit source string when a repo has a specialized producer.
@@ -142,10 +148,20 @@ message or `docs/solutions/` if they're worth carrying forward.
 When an implementation-ready software plan is warranted, these sections are
 present. They carry the contracts downstream consumers depend on.
 
-- **Goal Launch Block** — a thin, copyable prompt block for top-level `/goal`,
-  dynamic workflow, or fallback `ce-work` usage. It points to authoritative
-  sections; it does not duplicate the requirements, verification matrix, or
-  implementation details.
+- **Goal Launch Block** — copyable launch prompts. The document is the
+  *detailed* authority, but the launch prompt must still be **evaluator-complete**:
+  goal-mode treats the prompt as both the objective and the completion criteria,
+  so every block carries a self-contained objective, stop/blocker rules,
+  top-level non-negotiables, and transcript-visible verification — then points to
+  document sections for detail. It does not duplicate the full requirements,
+  verification matrix, or implementation specifics. Keep two **visibly separate**
+  blocks when both apply: a **Human standalone launch** (`/goal` / dynamic
+  workflow) and a **Pipeline/caller launch**. Pipeline mode shows only
+  `ce-work mode:caller-owned-tail <plan-path>` — never `/goal` — because a caller
+  needs a synchronous structured return, not a thread the user must drive.
+  Launch prompts name the canonical **markdown** plan path: markdown is the
+  execution artifact for `ce-work`, `lfg`, and `/goal`; an HTML rendering is a
+  human-facing/report-only view and is never the goal-launch target.
 - **Reader Index** — compact section map and read strategy for downstream
   agents. It tells readers which sections to load for common tasks and which
   large sections to skip until referenced.

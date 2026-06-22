@@ -159,6 +159,7 @@ If a relevant requirements-only unified plan exists:
 1. Read metadata, Reader Index, Goal Capsule, Product Contract, Open Questions, and Sources. Do not read long appendices unless referenced.
 2. Announce that `ce-plan` will enrich that same file to `artifact_readiness: implementation-ready`.
 3. Preserve the existing Product Contract text and stable R/A/F/AE IDs unless planning discovers a direct conflict. Conflicts become explicit assumptions or questions; do not silently rewrite product scope.
+   - Because enrichment edits the same file that holds the user's product decisions, record a one-line **Product Contract preservation** note in the enriched plan: either "Product Contract unchanged" or "changed: \<R-IDs\> — \<why\>". This keeps the WHAT/HOW review boundary visible to reviewers (`ce-doc-review`, PR review) when there is no separate brainstorm file to diff against. For a *substantive* product-scope change (not a clarification), pause and confirm with the user before writing implementation units.
 4. Carry forward all applicable Product Contract sections listed below.
 5. Use the Product Contract as the primary input to planning and research.
 6. Do not create a duplicate plan unless an explicit `output:` conversion or pipeline override requires a new canonical path; when conversion happens, report old path and new canonical path.

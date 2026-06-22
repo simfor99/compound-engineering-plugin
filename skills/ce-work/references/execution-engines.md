@@ -16,6 +16,8 @@ An engine is usable only when the host actually exposes a callable primitive for
 
 Rule of thumb: if the host primitive cannot be *called and awaited from within this skill*, treat goal-mode and dynamic-workflow as **prompt-emission only**, not as internal engines. On Claude Code, both fall in the copy/paste bucket; the only internally callable engine is inline/subagent.
 
+**Codex specifically.** Codex `/goal` is a top-level thread mode with pause/resume/clear/view controls — not an awaitable subroutine a skill can call and collect a structured completion envelope from. Treat it like Claude Code: prompt-emission only for standalone use, inline/subagents for LFG/caller-owned-tail. Run goal-mode internally only if a future Codex runtime exposes a callable goal primitive the skill can start and observe to completion/blocked. This constraint binds the native Codex plugin install too, which loads `SKILL.md` verbatim.
+
 ## Step 2: Pick the engine by plan shape
 
 When more than one engine is callable, choose by the plan's decomposition shape:
@@ -48,7 +50,7 @@ Copyable goal-mode prompt (standalone — emit verbatim, with the literal plan p
 ```text
 /goal Implement <plan-path> through its Definition of Done.
 
-First read: Reader Index, Goal Capsule, Definition of Done, and the Implementation Units heading map. Work unit-by-unit. For each U-ID, read only that unit plus referenced R/F/AE/KTD sections. Track progress outside the doc.
+First read: Reader Index, Goal Capsule, Definition of Done, and the Implementation Units heading map. Work unit-by-unit. For each U-ID, read only that unit plus referenced R/F/AE/KTD sections. Track progress outside the doc. Before each major phase and before declaring done, re-open the plan path and re-check the active U-IDs, Verification Contract, and Definition of Done against the current diff — context may have been compacted to a summary that dropped detail.
 
 This top-level goal owns implementation quality gates: run simplification and code review when the diff meets the repo's normal criteria, apply eligible fixes, and surface residual findings. Do not open a PR.
 
@@ -75,3 +77,7 @@ After any engine finishes implementation, inspect the diff and continue at the t
 | **Caller-owned-tail** (`mode:caller-owned-tail`, e.g. under `lfg`) | Performs implementation and local verification only, then returns the structured summary in `SKILL.md` § Caller-Owned Tail Mode (`standalone_shipping_skipped: true`). Does not run simplify/review/PR/CI — the caller owns those. |
 
 Using goal-mode or a dynamic workflow is a way to get better sustained implementation focus, not a way to skip the owning workflow's finish discipline.
+
+## Progress visibility (independent of tail ownership)
+
+Tail ownership decides who opens the **final** PR; it does not forbid progress signals during a long run. For multi-hour goals, meaningful commits as units complete and an optional scratch progress artifact (outside the plan body) are encouraged so a long trajectory stays observable. Only final PR creation is gated: a standalone top-level goal may open a **draft** PR only when it explicitly owns that channel; in caller-owned-tail mode `ce-work` must not open any PR, but may commit and return a progress report in its structured envelope. Never write progress or status into the plan body — git, commits, and the envelope carry it.
