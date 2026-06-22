@@ -375,7 +375,7 @@ describe("ce-plan review contract", () => {
     const content = await readRepoFile("skills/ce-plan/references/plan-handoff.md")
 
     // ce-work remains the recommended next-stage action (planning is done; review already ran)
-    expect(content).toContain("**Start `/ce-work`** (recommended) - Begin implementing this plan now via the `ce-work` skill")
+    expect(content).toContain("**Start `/ce-work`** (recommended) - Implement this plan now, in this session")
     // The /goal prompt is a separate, mutually-exclusive executor option
     expect(content).toContain("**Give me the `/goal` prompt**")
 
