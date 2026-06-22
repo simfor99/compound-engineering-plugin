@@ -252,6 +252,18 @@ describe("unified plan artifact contract", () => {
     expect(ceWorkEngines).toMatch(/compacted to a summary/i)
   })
 
+  test("post-plan menu offers /goal prompt as a mutually-exclusive executor", () => {
+    const planHandoff = readRepoFile("skills/ce-plan/references/plan-handoff.md")
+    for (const doc of [planSkill, planHandoff]) {
+      expect(doc).toContain("Give me the `/goal` prompt")
+      // The /goal option must not also run ce-work (tail-ownership guard).
+      expect(doc).toMatch(/Do not invoke `ce-work`/i)
+    }
+    // No authoring-file meta-references leak into runtime menu content.
+    expect(planHandoff).not.toContain("Per the AGENTS.md")
+    expect(planSkill).not.toContain("per the AGENTS.md narrow exception")
+  })
+
   test("ce-work defines the execution-engine selection lane", () => {
     expect(ceWork).toContain("Choose Execution Engine")
     expect(ceWork).toContain("references/execution-engines.md")

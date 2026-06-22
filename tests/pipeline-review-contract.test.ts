@@ -375,7 +375,9 @@ describe("ce-plan review contract", () => {
     const content = await readRepoFile("skills/ce-plan/references/plan-handoff.md")
 
     // ce-work remains the recommended next-stage action (planning is done; review already ran)
-    expect(content).toContain("**Start `/ce-work`** (recommended) - Begin implementing this plan in the current session")
+    expect(content).toContain("**Start `/ce-work`** (recommended) - Begin implementing this plan now via the `ce-work` skill")
+    // The /goal prompt is a separate, mutually-exclusive executor option
+    expect(content).toContain("**Give me the `/goal` prompt**")
 
     // Deeper review is a first-class menu fixture so users can engage with surfaced findings
     // without relying on free-form prompting; routed through ce-doc-review without headless mode.
@@ -387,7 +389,7 @@ describe("ce-plan review contract", () => {
     // collapses back to a 4-option AskUserQuestion-friendly shape on Claude Code. FYI-only
     // state also hides the option since ce-doc-review's walkthrough is gated to actionable
     // findings (anchor 75/100, gated_auto/manual) and FYIs (anchor 50) bypass it.
-    expect(content).toContain("Hide `Run deeper doc review` when no actionable findings remain")
+    expect(content).toContain("Hide `Run deeper doc review` (option 3) when no actionable findings remain")
     expect(content).toContain("proposed_fixes_count + decisions_count > 0")
 
     // Summary line above the menu surfaces autofix counts and remaining-bucket counts
