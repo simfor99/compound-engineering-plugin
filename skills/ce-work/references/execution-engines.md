@@ -11,12 +11,12 @@ An engine is usable only when the host actually exposes a callable primitive for
 | Engine | Usable when | Claude Code reality |
 |---|---|---|
 | **Inline / subagent** | Always. The orchestrator runs units inline or dispatches subagents via the platform's subagent primitive (`Agent`/`Task` in Claude Code, `spawn_agent` in Codex, `subagent` in Pi). | Always callable in-session. This is the default. |
-| **Goal-mode** | The host exposes a callable persistent-objective primitive that runs to completion, returns control, and yields a structured completion summary. | **Not callable from inside a skill.** `/goal` is a top-level user command. `ce-work` cannot invoke it mid-session — it can only emit a copyable prompt for the user to paste, or run inline/subagents. |
+| **Goal-mode** | The host exposes a callable goal *tool* a skill can invoke — e.g. Codex `create_goal` (sets **and activates** a persistent objective for the current session) plus `update_goal(complete\|blocked)` for terminal status. | **No goal tools exposed.** `/goal` is a top-level user command only; a skill cannot invoke it or any goal tool. Emit a copyable `/goal` prompt for the user to paste, or run inline/subagents. **Codex differs — it does expose `create_goal` (see below).** |
 | **Dynamic-workflow** | The host exposes a callable dynamic-workflow / ultracode-style orchestration primitive that returns structured results and blockers without mid-run user decisions. | **Not callable from inside a skill.** Dynamic workflows start from a user prompt (`ultracode:` or `/effort ultracode`). `ce-work` can only emit a copyable prompt block. |
 
-Rule of thumb: if the host primitive cannot be *called and awaited from within this skill*, treat goal-mode and dynamic-workflow as **prompt-emission only**, not as internal engines. On Claude Code, both fall in the copy/paste bucket; the only internally callable engine is inline/subagent.
+Rule of thumb: **probe for the callable tool, don't infer from the command's existence.** If the host exposes a callable goal tool (Codex `create_goal`), goal-mode is a real callable engine — use it. If it exposes only a user-typed `/goal` (Claude Code), goal-mode is prompt-emission only — emit a copyable prompt. The literal `/goal` slash command is not skill-invocable on any host; the *tool* path is what makes Codex callable.
 
-**Codex specifically.** Codex `/goal` is a top-level thread mode with pause/resume/clear/view controls — not an awaitable subroutine a skill can call and collect a structured completion envelope from. Treat it like Claude Code: prompt-emission only for standalone use, inline/subagents for LFG/caller-owned-tail. Run goal-mode internally only if a future Codex runtime exposes a callable goal primitive the skill can start and observe to completion/blocked. This constraint binds the native Codex plugin install too, which loads `SKILL.md` verbatim.
+**Codex specifically.** Codex exposes goal **tools** to skills (gated by `features.goals`, so probe for their presence): `create_goal(objective)` sets **and activates** a persistent objective — the **current session** then works toward it automatically (it steers this agent; it is not a background worker and returns no awaitable envelope) — and `update_goal(status: complete|blocked)` reports terminal status when the objective is genuinely met (or repeatedly blocked). So a Codex skill can **start goal-mode directly, with no copy-paste**: call `create_goal` with the objective (same content as the copyable prompt below). That is the skill's whole job — `create_goal` activates the objective and the **current session works toward it automatically**, and the goal lifecycle marks it `complete` (via `update_goal`) when the Definition of Done is met. **The skill does NOT call `update_goal`** — the working session handles that on its own (it is terminal-status only, not a mid-stream edit). The literal `/goal` slash command remains user-typed-only; the tool path is the callable one. (Claude Code exposes no goal tools at all — confirmed empirically — so it stays copy-paste-only.)
 
 ## Step 2: Pick the engine by plan shape
 
@@ -38,12 +38,14 @@ Follow the dispatch strategy in `SKILL.md` Phase 1 Step 4 (inline, serial subage
 
 ### Goal-mode and dynamic-workflow
 
-On a host where these are not callable from a skill (Claude Code today): do **not** attempt to invoke them. Instead:
+**With a callable goal tool (Codex `create_goal`):** call `create_goal` with the objective — the content of the copyable prompt below, minus the leading `/goal`. This activates the objective and the **current session** works toward it; there is no separate worker and no envelope to await, so the session simply continues to its tail (Step 4) and the goal lifecycle marks completion. **The skill does not call `update_goal`** — the working session does that itself. **Use `create_goal` only in standalone use, never in caller-owned-tail** — caller-owned-tail requires `ce-work` to return control to the caller, but `create_goal` would keep the session pursuing the objective instead of returning; run inline/subagents there.
+
+**No callable goal tool, or dynamic-workflow (Claude Code today):** do **not** attempt to invoke them. Instead:
 
 - **Standalone interactive use:** print a copyable prompt block for the user to paste, then continue inline/subagents if the user does not paste it. Do not stall waiting for a paste.
 - **Caller-owned-tail use (e.g. under `lfg`):** do **not** emit a copyable prompt — a manual paste step strands the caller. Run inline/subagents instead, or return a blocker if the plan genuinely requires an unavailable engine.
 
-On a host where they *are* callable: launch the engine scoped to implementation only, await its structured summary, then resume the tail (below). The launched goal/workflow must not open a PR, finalize the session, or bypass the owning workflow's gates.
+Whichever path, the goal/workflow must not open a PR, finalize the session, or bypass the owning workflow's gates.
 
 Copyable goal-mode prompt (standalone — emit verbatim, with the literal plan path substituted):
 

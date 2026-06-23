@@ -91,7 +91,7 @@ describe("unified plan artifact contract", () => {
     // Recommended path is planning; the skip-planning execution slot is a single
     // option (/goal when available, else ce-work) gated to sufficient definition.
     expect(brainstormHandoff).toContain("Create the implementation plan")
-    expect(brainstormHandoff).toContain("single skip-planning option")
+    expect(brainstormHandoff).toMatch(/single skip-planning slot/i)
   })
 
   test("ce-plan enriches unified plans in place and preserves legacy inputs", () => {
@@ -246,7 +246,12 @@ describe("unified plan artifact contract", () => {
   test("execution engines define a Codex lane, progress-visibility, and compaction recovery", () => {
     // Codex #972-review P1 #3 / P2 #9 / P2 #10
     expect(ceWorkEngines).toContain("Codex specifically")
-    expect(ceWorkEngines).toMatch(/not an awaitable subroutine/i)
+    // Codex exposes a callable goal tool; the skill starts it and does NOT call update_goal.
+    expect(ceWorkEngines).toContain("create_goal")
+    expect(ceWorkEngines).toMatch(/skill does NOT call `update_goal`/i)
+    expect(ceWorkEngines).toMatch(/start goal-mode directly, with no copy-paste/i)
+    // Claude Code has no goal tools → copy-paste only.
+    expect(ceWorkEngines).toMatch(/Claude Code exposes no goal tools/i)
     expect(ceWorkEngines).toContain("Progress visibility (independent of tail ownership)")
     expect(ceWorkEngines).toMatch(/must not open any PR/i)
     expect(ceWorkEngines).toMatch(/draft\*?\*? PR only/i)
@@ -259,7 +264,10 @@ describe("unified plan artifact contract", () => {
     for (const doc of [planSkill, planHandoff]) {
       expect(doc).toContain("Create a `/goal` prompt")
       // The /goal option must not also run ce-work (tail-ownership guard).
-      expect(doc).toMatch(/Do not invoke `ce-work`/i)
+      expect(doc).toMatch(/`ce-work` does \*{0,2}not\*{0,2} also run/i)
+      // On a callable-goal-tool host the skill starts it directly and never calls update_goal.
+      expect(doc).toContain("create_goal")
+      expect(doc).toMatch(/do not call `update_goal`|the goal session marks its own completion/i)
     }
     // No authoring-file meta-references leak into runtime menu content.
     expect(planHandoff).not.toContain("Per the AGENTS.md")

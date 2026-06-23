@@ -52,7 +52,7 @@ What would you like to do next? (Pick a number or describe what you want.)
 Present only the options that apply. Renumber so visible options stay contiguous starting at 1.
 
 1. **Create the implementation plan** *(recommended)* - Hand off to `ce-plan` and sharpen the requirements into a complete, testable plan. Shown only when `Resolve Before Planning` is empty.
-2. **Create a `/goal` prompt** - A copyable `/goal` prompt that implements straight from the requirements, with no technical-planning step. Quicker to start, but likelier to need rework or miss what a plan would catch. Shown only on hosts with a top-level `/goal` command (Claude Code, Codex). On a host without `/goal`, this slot renders instead as **Build it now** - implement straight from the requirements via `ce-work`, same caveat; shown only when the direct-to-work gate found a sufficient Definition of Done in chat or the artifact. (This is the single skip-planning option: show `/goal` when available — the most autonomous path — otherwise `ce-work`, never both.)
+2. **Create a `/goal` prompt** - Implement straight from the requirements as an autonomous `/goal`, with no technical-planning step. Quicker to start, but likelier to need rework or miss what a plan would catch. Shown on hosts that have goal mode — a callable goal tool (Codex `create_goal`) or a user-typed `/goal` (Claude Code): where the host can start a goal directly it begins immediately, otherwise it hands over a copyable prompt. On a host with no goal mode at all, this slot renders instead as **Build it now** - implement straight from the requirements via `ce-work`, same caveat; shown only when the direct-to-work gate found a sufficient Definition of Done in chat or the artifact. (Single skip-planning slot: most-autonomous-available — `/goal` when present, else `ce-work` — never both.)
 3. **Pressure-test the requirements** - Dispatch reviewer agents with `ce-doc-review` to find gaps, conflicts, weak premises, and scope issues in the requirements; auto-apply safe fixes; route the rest interactively. Shown only when a markdown unified plan exists **and `OUTPUT_FORMAT=md`** — ce-doc-review's walkthrough applies markdown-only mutations (`##`/`###` heading inserts, single-file markdown edits via apply-set) and would corrupt an HTML artifact, so HTML brainstorms skip this option until ce-doc-review gains HTML-aware mutation support. Under HTML mode, surface a one-line note above the menu: `Requirements review unavailable in output:html mode — ce-doc-review is markdown-only today. Switch to output:md if you want a review pass.`
 4. **Publish to Proof — shareable link** - Publish the markdown unified plan to Every's Proof editor and get a shareable link to read, comment on, or share with others. One-way: the local doc stays canonical. Shown only when a markdown unified plan exists. **Render only when `OUTPUT_FORMAT=md`** (Proof operates on markdown and cannot ingest HTML).
 4. **Open in browser** — open the HTML unified plan locally for review and sharing. Shown only when an HTML unified plan exists. **Render only when `OUTPUT_FORMAT=html`.** Replaces "Publish to Proof" at the same slot under exclusive output mode — the artifact is either markdown OR HTML, never both, so exactly one of the two labels applies per run.
@@ -87,23 +87,26 @@ above the menu. Do not show the closing summary yet.
 
 **If user selects the skip-planning option ("Create a `/goal` prompt", or "Build it now" on hosts without `/goal`):**
 
-This is the single skip-planning slot — execute either as a `/goal` prompt or
-via `ce-work`, never both.
+This is the single skip-planning slot — execute one way only, never `ce-work`
+*and* a goal. The goal objective (however delivered) uses the requirements-only
+unified plan as authority and instructs the agent to derive its own approach,
+units, and verification (there is no Planning Contract or Verification Contract
+— this is the skip-planning path), implement to a working state and verify it,
+stop and surface any open product question, run applicable quality gates, and
+not open a PR.
 
-- **On a host with `/goal` (Claude Code, Codex):** print one copyable `/goal`
-  prompt and tell the user to paste it at the start of a message. The prompt
-  uses the requirements-only unified plan as authority and instructs the goal
-  to derive its own approach, units, and verification (there is no Planning
-  Contract or Verification Contract — this is the skip-planning path),
-  implement to a working state and verify it, stop and surface any open
-  product question, run applicable quality gates, and not open a PR. **Do not
-  also load `ce-work`** — the user's `/goal` is the executor. After printing,
-  return to the Phase 4 options.
-- **On a host without `/goal`:** only when the skip-planning gate explicitly
+- **Host with a callable goal tool (Codex `create_goal`):** call `create_goal`
+  with that objective. The goal becomes active and the current session works
+  toward it — no copy-paste. **Do not call `update_goal`** (the goal session
+  marks its own completion) and **do not also load `ce-work`**.
+- **Host with only a user-typed `/goal` (Claude Code):** print that objective as
+  one copyable `/goal` prompt and tell the user to paste it at the start of a
+  message (a skill cannot issue `/goal` itself there). Do not also load
+  `ce-work`. After printing, return to the Phase 4 options.
+- **Host with no goal mode at all:** only when the skip-planning gate explicitly
   found a sufficient Definition of Done in chat or the artifact, immediately
   load the `ce-work` skill in the current session using the finalized
-  brainstorm output as context; pass the unified plan path when one exists. Do
-  not also print a `/goal` prompt.
+  brainstorm output as context; pass the unified plan path when one exists.
 
 Do not print the closing summary first.
 
