@@ -374,10 +374,11 @@ describe("ce-plan review contract", () => {
   test("handoff options expose deeper-review opt-in alongside ce-work", async () => {
     const content = await readRepoFile("skills/ce-plan/references/plan-handoff.md")
 
-    // ce-work remains the recommended next-stage action (planning is done; review already ran)
-    expect(content).toContain("**Start `/ce-work`** (recommended) - Best for shorter work")
-    // The /goal prompt is a separate, mutually-exclusive executor option
+    // Both executors are offered; /goal is the recommended default when present,
+    // ce-work otherwise (the (recommended) marker is dynamic, not hardcoded).
+    expect(content).toContain("**Start `/ce-work`** - Best for shorter work")
     expect(content).toContain("**Create a `/goal` prompt**")
+    expect(content).toMatch(/`\/goal` is the recommended default when its host supports it/i)
 
     // Deeper review is a first-class menu fixture so users can engage with surfaced findings
     // without relying on free-form prompting; routed through ce-doc-review without headless mode.
