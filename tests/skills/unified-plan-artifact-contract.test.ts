@@ -262,7 +262,7 @@ describe("unified plan artifact contract", () => {
   test("post-plan menu offers /goal prompt as a mutually-exclusive executor", () => {
     const planHandoff = readRepoFile("skills/ce-plan/references/plan-handoff.md")
     for (const doc of [planSkill, planHandoff]) {
-      expect(doc).toContain("Create a `/goal` prompt")
+      expect(doc).toContain("Run it as a `/goal`")
       // The /goal option must not also run ce-work (tail-ownership guard).
       expect(doc).toMatch(/`ce-work` does \*{0,2}not\*{0,2} also run/i)
       // On a callable-goal-tool host the skill starts it directly and never calls update_goal.

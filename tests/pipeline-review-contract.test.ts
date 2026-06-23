@@ -377,7 +377,7 @@ describe("ce-plan review contract", () => {
     // Both executors are offered; /goal is the recommended default when present,
     // ce-work otherwise (the (recommended) marker is dynamic, not hardcoded).
     expect(content).toContain("**Start `/ce-work`** - Best for shorter work")
-    expect(content).toContain("**Create a `/goal` prompt**")
+    expect(content).toContain("**Run it as a `/goal`**")
     expect(content).toMatch(/`\/goal` is the recommended default when its host supports it/i)
 
     // Deeper review is a first-class menu fixture so users can engage with surfaced findings
