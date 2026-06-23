@@ -41,6 +41,41 @@ If the input is present but unclear or underspecified, do not abandon — ask on
 7. **Carry execution posture lightly when it matters** - If the request, origin document, or repo context clearly implies test-first, characterization-first, or another non-default execution posture, reflect that in the plan as a lightweight signal. Do not turn the plan into step-by-step execution choreography.
 8. **Honor user-named resources** - When the user names a specific resource — a CLI, MCP server, URL, file, doc link, or prior artifact — treat it as authoritative input, not a suggestion. Discover it if unknown (`command -v`, fetch, read) before assuming it's unavailable. Use it in place of generic alternatives. If it fails or doesn't exist, say so explicitly rather than silently substituting.
 
+#### Browser Runtime Routing Guard
+
+When the planned work includes user-visible UI, browser automation, auth/session
+state, Chrome extensions, Native Messaging, CDP, performance evidence, or visual
+polish, carry a lightweight browser-evidence note in the relevant implementation
+unit or verification section. Do not run browser tests during planning.
+
+Default routing for the downstream executor:
+
+- Chrome-AXI is the preferred default route for visual UI/UX/design work and
+  for live/auth/session/CDP/extension-runtime evidence when the project-approved
+  Chrome is available.
+- Direct Chrome DevTools MCP is the fallback when AXI is unavailable or a
+  specialized CDP operation needs it.
+- `agent-browser` remains valid for quick exploration when no live/auth/session
+  or extension-runtime proof is being claimed.
+- Partial AXI/DevTools exposure is a capability-refresh signal, not an
+  immediate Playwright fallback. If only some browser tools are visible, the
+  executor should refresh/discover capabilities and reload the AXI reference
+  before changing route.
+- Downstream Chrome-AXI execution should open owned tabs with
+  `newpage <url> --background` by default and avoid bringing tabs to the front
+  unless Simon explicitly asks or manual visual inspection cannot be done from
+  screenshots/snapshots.
+- Playwright is not the first browser-working route. Use it after Chrome-AXI
+  observation when an important behavior should be codified as an automated
+  regression, or when CI/headless/Cross-Browser evidence is explicitly required.
+- Xvfb, Chrome for Testing, or isolated Playwright contexts must not be planned
+  as proof of a real user browser, real account session, or real extension
+  runtime.
+
+Patch registry: in repos that define
+`docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
+that registry entry is the recovery source if this plugin cache is refreshed.
+
 ## Plan Quality Bar
 
 Every plan should contain:
@@ -51,6 +86,7 @@ Every plan should contain:
 - Decisions with rationale, not just tasks
 - Existing patterns or code references to follow
 - Enumerated test scenarios for each feature-bearing unit, specific enough that an implementer knows exactly what to test without inventing coverage themselves
+- Browser-evidence routing for user-visible UI or browser-runtime work, when material
 - Clear dependencies and sequencing
 
 A plan is ready when an implementer can start confidently without needing the plan to write the code for them.

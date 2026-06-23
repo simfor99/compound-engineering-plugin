@@ -114,6 +114,54 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - You want to keep the default branch clean while experimenting
    - You plan to switch between branches frequently
 
+#### Browser Runtime Routing Guard
+
+When implementation touches user-visible UI, browser automation, auth/session
+state, Chrome extensions, Native Messaging, CDP, performance evidence, or visual
+polish, classify the browser proof before final validation.
+
+Default routing:
+
+- Prefer Chrome-AXI as the default working route for visual UI/UX/design work
+  and for live/auth/session/CDP/extension-runtime evidence against the
+  project-approved Chrome.
+- Use direct Chrome DevTools MCP when AXI is unavailable or a specialized CDP
+  operation needs the direct tool.
+- Use `agent-browser` for quick exploration when no live/auth/session or
+  extension-runtime proof is being claimed.
+- Use Playwright after Chrome-AXI observation when an important behavior should
+  be codified as an automated regression, or when CI/headless/Cross-Browser
+  evidence is explicitly required.
+- Do not treat Xvfb, Chrome for Testing, an isolated Playwright context, or CDP
+  reachability alone as proof of a real user browser, real account session, or
+  real extension runtime.
+
+For WSL/Windows browser work, verify the endpoint class before making a live
+runtime claim. Browser automation uses owned tabs and closes them after the
+evidence run.
+
+Operational Chrome-AXI route: read
+`/home/simon/.codex/references/chrome-devtools-axi.md`, verify
+`command -v chrome-devtools-axi`, classify the project-approved Chrome endpoint,
+set `CHROME_DEVTOOLS_AXI_BROWSER_URL` when needed, then use `pages`,
+`newpage <url> --background`, `pages` to identify the owned tab id,
+`selectpage`, `screenshot`, `console`/`network`, and `closepage` on that owned
+tab. Background tabs are the default for autonomous reviews; do not bring tabs
+to the front unless Simon explicitly asks or manual visual inspection cannot be
+done from screenshots/snapshots. Use `newpage about:blank` only when the
+specific run needs a blank starting tab.
+
+Partial Tool Exposure: if the harness initially exposes only some
+AXI/Chrome-DevTools actions, do not immediately switch to Playwright. Refresh
+or rediscover tool capabilities, reload
+`/home/simon/.codex/references/chrome-devtools-axi.md`, and retry AXI. Fall back
+only if the required actions remain unavailable, and report the downgraded
+evidence class.
+
+Patch registry: in repos that define
+`docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
+that registry entry is the recovery source if this plugin cache is refreshed.
+
 3. **Create Task List** _(skip if Phase 0 already built one, or if Phase 0 routed as Trivial)_
    - Use the platform's task tracking tool (`TaskCreate`/`TaskUpdate`/`TaskList` in Claude Code, `update_plan` in Codex, or the equivalent on other harnesses) to break the plan into actionable tasks
    - Derive tasks from the plan's implementation units, dependencies, files, test targets, and verification criteria
@@ -319,7 +367,7 @@ Determine how to proceed based on what was provided in `<input_document>`.
    For UI tasks without a Figma design -- where the implementation touches view, template, component, layout, or page files, creates user-visible routes, or the plan contains explicit UI/frontend/design language:
 
    - Apply the frontend guidance embedded in this skill and the active repo instructions: preserve existing design-system conventions, use real UI controls and states, keep layouts responsive, and verify text does not overflow or overlap.
-   - When browser tooling is available, inspect the changed UI at desktop and mobile widths before final validation. If no browser access is available, do a code-level responsive/layout review and record that browser verification was unavailable.
+   - When browser tooling is available, inspect the changed UI at desktop and mobile widths before final validation. Prefer Chrome-AXI for visual UI/UX/design work when available; add Playwright only when an important observed behavior should become an automated regression or CI/Cross-Browser evidence is explicitly required. If no browser access is available, do a code-level responsive/layout review and record that browser verification was unavailable.
    - Phase 4's screenshot capture still applies when the change is user-visible.
 
 8. **Track Progress**

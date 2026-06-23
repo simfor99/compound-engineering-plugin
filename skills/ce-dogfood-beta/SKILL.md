@@ -1,7 +1,7 @@
 ---
 name: ce-dogfood-beta
-description: "[BETA] Dogfood the active branch end-to-end as a QA engineer. Diffs the branch against main, builds an exhaustive browser test matrix of every change (full user journeys, not just features), drives the app with agent-browser, then auto-fixes issues, adds regression tests, and commits each fix until the matrix is green. Use when you want a hands-off 'test everything we just built and make it actually work' pass before shipping."
-disable-model-invocation: true
+description: "[BETA] Dogfood the active branch end-to-end as a QA engineer. Diffs the branch against main, builds an exhaustive browser test matrix of every change (full user journeys, not just features), drives the app with the project-appropriate browser route, then auto-fixes issues, adds regression tests, and commits each fix until the matrix is green. Use when you want a hands-off 'test everything we just built and make it actually work' pass before shipping."
+disable-model-invocation: false
 argument-hint: "[PR number, branch name, or blank for current branch] [--port PORT]"
 ---
 
@@ -11,20 +11,61 @@ Act as a QA engineer who dogfoods the **active branch** end-to-end: understand e
 
 This is **diff-scoped**, not whole-app exploration. You test what *this branch* introduced or modified versus `main`. (For full-app exploratory QA, use the `dogfood` skill instead.)
 
-## Use `agent-browser` Only For Browser Automation
+## Browser Runtime Routing Guard
 
-This workflow drives the browser exclusively through the `agent-browser` CLI. Do not use Chrome MCP tools (`mcp__claude-in-chrome__*`), any browser MCP integration, or other built-in browser-control tools. If the platform offers multiple ways to control a browser, always choose `agent-browser`. Use the direct binary, never `npx agent-browser` (the direct binary uses the fast Rust client).
+Default to Chrome-AXI for visual UI/UX/design inspection when it is available
+and the project-approved Chrome can be reached. Also use Chrome-AXI for
+auth/session, Chrome extension, Native Messaging, CDP, performance, or
+user-browser-near evidence. Direct Chrome DevTools MCP is the fallback when AXI
+is unavailable or a specialized CDP operation needs it.
+
+Use `agent-browser` for fast exploration when no live/auth/session or
+extension-runtime proof is being claimed, or when Chrome-AXI is unavailable and
+the dogfood run is still useful as visual/debug evidence. Use the direct binary,
+never `npx agent-browser`, when this route is selected.
+
+Use Playwright only after Chrome-AXI observation when an important behavior
+should be codified as an automated regression, or when CI/headless/
+Cross-Browser evidence is explicitly required.
+
+Do not treat Xvfb, Chrome for Testing, isolated Playwright contexts, or CDP
+reachability alone as proof of a real user browser, real account session, or
+real extension runtime. Browser automation uses owned tabs and closes them
+after the run.
+
+Operational Chrome-AXI route: read
+`/home/simon/.codex/references/chrome-devtools-axi.md`, verify
+`command -v chrome-devtools-axi`, classify the project-approved Chrome endpoint,
+set `CHROME_DEVTOOLS_AXI_BROWSER_URL` when needed, then use `pages`,
+`newpage <url> --background`, `pages` to identify the owned tab id,
+`selectpage`, `screenshot`, `console`/`network`, and `closepage` on that owned
+tab. Background tabs are the default for autonomous reviews; do not bring tabs
+to the front unless Simon explicitly asks or manual visual inspection cannot be
+done from screenshots/snapshots. Use `newpage about:blank` only when the
+specific run needs a blank starting tab.
+
+Partial Tool Exposure: if only some AXI/Chrome-DevTools actions are visible at
+first, refresh/discover capabilities and reload the AXI reference before
+falling back. Do not use Playwright merely because screenshot/snapshot/navigation
+was not exposed on the first look.
+
+Patch registry: in repos that define
+`docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
+that registry entry is the recovery source if this plugin cache is refreshed.
 
 ## Prerequisites
 
 - A local dev server you can start (`bin/dev`, `rails server`, `npm run dev`, etc.).
-- `agent-browser` installed. Check:
+- Chrome-AXI, Chrome DevTools MCP, `agent-browser`, or Playwright available for
+  the selected browser route. Check:
 
   ```bash
+  command -v chrome-devtools-axi >/dev/null 2>&1 && echo "Chrome-AXI ready" || true
   command -v agent-browser >/dev/null 2>&1 && echo "Ready" || echo "NOT INSTALLED"
   ```
 
-  If not installed, run the `ce-setup` skill to get the current install command, install `agent-browser`, then resume. Do not continue without it.
+  If the selected route is unavailable, report that route and choose the next
+  valid fallback only if it still proves the required runtime class.
 
 ## Reusing Compound-Engineering Skills
 
@@ -33,7 +74,7 @@ This workflow drives the browser exclusively through the `agent-browser` CLI. Do
 | When | Skill | Why |
 |------|-------|-----|
 | Phase 0 isolation | `ce-worktree` | Run the dogfood in an isolated worktree so the main checkout stays clean. |
-| agent-browser missing | `ce-setup` | Reports the current `agent-browser` install command. |
+| selected browser route missing | `ce-setup` | Reports current setup guidance for browser tooling. |
 | A failure's root cause is non-obvious | `ce-debug` | Systematic root-cause analysis instead of guess-and-check. |
 | Committing each fix | `ce-commit` | Consistent, well-scoped commit messages. |
 | A bug reveals a reusable lesson | `ce-compound` | Capture the learning so the team compounds knowledge. |
@@ -46,8 +87,8 @@ Reuse `ce-test-browser`'s mechanics for port detection and dev-server startup (s
 0. Scope        Pick the branch, get onto it (offer worktree), never touch main
 1. Analyze      Diff branch vs main, understand every change
 2. Map+Matrix   Map user flows as Mermaid flowcharts, then derive the test matrix as a task list
-3. Serve        Detect port, start dev server, open agent-browser
-4. Execute      Work the matrix one item at a time with agent-browser
+3. Serve        Detect port, start dev server, open the selected browser route
+4. Execute      Work the matrix one item at a time with the selected browser route
 5. Fix loop     On failure: fix -> add regression test -> commit -> continue
 6. Report       Write durable doc to docs/dogfood-reports/ (flows, matrix, fixes, learnings, verdict)
 ```
@@ -122,19 +163,20 @@ Map changed files to concrete routes (views -> their pages, components -> pages 
 
 Determine the port (priority: explicit `--port` > a port explicitly stated in your in-context project instructions > `package.json` dev script > `.env*` `PORT=` > default `3000`). If a server is already listening, reuse it; otherwise start the project's dev command in the background and wait for the port to come up. This is the same mechanism `ce-test-browser` uses — follow its Phase 5–6 logic.
 
-```bash
-agent-browser open "http://localhost:${PORT}"
-agent-browser snapshot -i
-```
+Open `http://localhost:${PORT}` with the selected browser route. Prefer
+Chrome-AXI for visual dogfood when available; fall back according to the Browser
+Runtime Routing Guard.
 
 ### Phase 4: Execute the Matrix
 
 Work the task list **one item at a time**. For each scenario, mark the task `in_progress`, then:
 
 1. **Document** what you're testing (the journey and the expected outcome).
-2. **Drive it** with agent-browser — navigate, snapshot for interactive refs, click, fill, submit, follow the journey to its real end state:
+2. **Drive it** with the selected browser route — navigate, inspect interactive
+   elements, click, fill, submit, follow the journey to its real end state:
 
    ```bash
+   # agent-browser fallback example
    agent-browser open "http://localhost:${PORT}/<route>"
    agent-browser snapshot -i
    agent-browser click @e1

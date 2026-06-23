@@ -138,6 +138,18 @@ Product-tier triggers additional Phase 1.2 questions and additional sections in 
 
 **Visual probe tripwire.** If the feature is inherently visual or spatial — drawing/canvas tools, annotation behavior, visual editors, UI layout or navigation, interaction states, charts, diagrams, animation, maps, timelines, or spatial flows — read `references/visual-probes.md` now and remember that a visual-probe gate is pending. Strong signals include freehand vs constrained drawing behavior, canvas annotation tools, layout comparisons, and state/flow placement. Loading the reference here is readiness only; do not offer the visual path until the first concrete shape/behavior decision. If the user later chooses visual, run the helper at `scripts/visual-probe-server.js` by resolving it relative to this loaded `ce-brainstorm` skill directory; if the runtime does not expose a concrete skill directory, do not guess from the project CWD — use the text path.
 
+#### 0.4 Working Notes Guard
+
+For Standard or Deep brainstorms, create or resume a non-canonical working-notes file before substantive dialogue can grow long enough to be lost to context compaction.
+
+- Look for an obvious matching `docs/brainstorms/YYYY-MM-DD-<topic>-working-notes.md` file. If one exists, read it and continue from it.
+- If none exists, create one once the topic and rough scope are clear enough to name. Mark it plainly as `Status: Working notes, not the final requirements contract.`
+- Keep the file concise but useful as a recovery surface. For decision-heavy product brainstorms, use stable sections such as: problem frame, one-sentence target shape, provenance labels, confirmed decisions, key flows, working case matrix, draft UX copy, tracking/admin implications, discarded options, important assumptions, open questions, and next discussion point. Do not transcript the conversation.
+- Use lightweight stable IDs when they make later discussion easier (`D1`, `F1`, `C1`, `P1`, `A1`, etc.). IDs are for conversation recovery, not final requirements numbering.
+- Update the file after material user decisions, resolved open questions, changed scope, or newly discovered repo facts. Do not update after every chat turn.
+- When Phase 3 writes the final requirements document, treat working notes as raw material, not the source of truth. The final `*-requirements.<md|html>` file becomes canonical for `ce-plan`.
+- For Lightweight brainstorms, skip the file unless the conversation becomes multi-turn, decision-heavy, or the user explicitly asks for compaction-safe notes.
+
 ### Phase 1: Understand the Idea
 
 #### 1.1 Existing Context Scan
@@ -224,6 +236,7 @@ This gate **takes precedence over the default blocking-question path** (Interact
 - Surface dependencies or prerequisites only when they materially affect scope
 - Resolve product decisions here; leave technical implementation choices for planning
 - Bring ideas, alternatives, and challenges instead of only interviewing
+- Maintain the working-notes file from Phase 0.4 whenever a decision, assumption, or open question materially changes.
 - **Visual-probe gate.** Governed by the bold gate checkpoint at the top of this phase — the offer fires before the first shape/behavior/state/layout/flow/diagram question, and an ASCII or text mockup inside a blocking question never satisfies it.
 
 **Before exiting Phase 1.3: integration check.** Mentally combine what the user has said so far and surface any non-obvious consequences the dialogue hasn't probed. If user-stated X plus user-stated Y plus your-default-Z produces a downstream effect the user is unlikely to have tracked through one-question-at-a-time dialogue ("if mute lives on the rule AND we don't warn on delete, then rule-delete silently loses pause state"), probe it now while you're still in dialogue. One probe per genuine combination effect, asked open-ended, same discipline as rigor probes. Phase 2.5's call-outs are a safety net for residuals (silent agent inferences, pre-loaded contexts with no dialogue) — NOT a punt list for consequences you could have asked about now.
@@ -288,6 +301,8 @@ Skip when Path A fires, when the doc will make no checkable claims, or on the no
 ### Phase 3: Capture the Requirements
 
 Write or update a requirements document only when the conversation produced durable decisions worth preserving — see `references/brainstorm-sections.md` "Decide whether a doc is warranted at all" for the criteria and the bug-fix stress test. Skip document creation when the user only needs brief alignment and the decisions can flow downstream (ce-plan, commit message, docs/solutions/) without a brainstorm artifact in the middle.
+
+If a working-notes file exists, read it before composing the final document. Carry forward only confirmed decisions, material assumptions, unresolved questions, and evidence-backed context. Do not preserve raw dialogue or superseded intermediate options unless they explain an important scope boundary.
 
 When a doc is warranted, compose it using:
 

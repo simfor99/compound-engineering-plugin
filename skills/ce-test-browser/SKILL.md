@@ -6,49 +6,99 @@ argument-hint: "[PR number, branch name, 'current', or --port PORT]"
 
 # Browser Test Skill
 
-Run end-to-end browser tests on pages affected by a PR or branch changes using the `agent-browser` CLI.
+Run browser tests on pages affected by a PR or branch changes using the
+project-appropriate browser route.
 
-## Use `agent-browser` Only For Browser Automation
+## Browser Runtime Routing Guard
 
-This workflow uses the `agent-browser` CLI exclusively. Do not use any alternative browser automation system, browser MCP integration, or built-in browser-control tool. If the platform offers multiple ways to control a browser, always choose `agent-browser`.
+Default to Chrome-AXI for visual UI/UX/design inspection when it is available
+and the project-approved Chrome can be reached. Also use Chrome-AXI for
+auth/session, Chrome extension, Native Messaging, CDP, performance, or
+user-browser-near evidence. Direct Chrome DevTools MCP is the fallback when AXI
+is unavailable or a specialized CDP operation needs it.
 
-Use `agent-browser` for: opening pages, clicking elements, filling forms, taking screenshots, and scraping rendered content.
+Use `agent-browser` for fast exploration when no live/auth/session or
+extension-runtime proof is being claimed, or when Chrome-AXI is unavailable and
+the test is still useful as visual/debug evidence.
+
+Use Playwright after Chrome-AXI observation when an important behavior should be
+codified as an automated regression, or when CI/headless/Cross-Browser evidence
+is explicitly required.
+
+Do not treat Xvfb, Chrome for Testing, isolated Playwright contexts, or CDP
+reachability alone as proof of a real user browser, real account session, or
+real extension runtime. Browser automation uses owned tabs and closes them
+after the run.
+
+Operational Chrome-AXI route: read
+`/home/simon/.codex/references/chrome-devtools-axi.md`, verify
+`command -v chrome-devtools-axi`, classify the project-approved Chrome endpoint,
+set `CHROME_DEVTOOLS_AXI_BROWSER_URL` when needed, then use `pages`,
+`newpage <url> --background`, `pages` to identify the owned tab id,
+`selectpage`, `screenshot`, `console`/`network`, and `closepage` on that owned
+tab. Background tabs are the default for autonomous reviews; do not bring tabs
+to the front unless Simon explicitly asks or manual visual inspection cannot be
+done from screenshots/snapshots. Use `newpage about:blank` only when the
+specific run needs a blank starting tab.
+
+Partial Tool Exposure: if only some AXI/Chrome-DevTools actions are visible at
+first, refresh/discover capabilities and reload the AXI reference before
+falling back. Do not use Playwright merely because screenshot/snapshot/navigation
+was not exposed on the first look.
+
+Patch registry: in repos that define
+`docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
+that registry entry is the recovery source if this plugin cache is refreshed.
+
+Use the selected route for opening pages, clicking elements, filling forms,
+taking screenshots, checking console/network, and scraping rendered content.
 
 Platform-specific hints:
 - In Claude Code, do not use Chrome MCP tools (`mcp__claude-in-chrome__*`).
-- In Codex, do not substitute unrelated browsing tools.
+- In Codex, prefer `chrome-devtools-axi` for the Chrome-AXI route and direct
+  Chrome DevTools MCP only when AXI is unavailable or insufficient.
 
 ## Prerequisites
 
 - Local development server running (e.g., `bin/dev`, `rails server`, `npm run dev`)
-- `agent-browser` CLI installed (see Setup below)
+- Chrome-AXI, Chrome DevTools MCP, `agent-browser`, or Playwright available for
+  the selected browser route
 - Git repository with changes to test
 
 ## Setup
 
-Check whether `agent-browser` is installed:
+Check whether the preferred browser route is available:
 
 ```bash
-command -v agent-browser >/dev/null 2>&1 && echo "Installed" || echo "NOT INSTALLED"
+command -v chrome-devtools-axi >/dev/null 2>&1 && echo "chrome-devtools-axi installed" || echo "chrome-devtools-axi not installed"
+command -v agent-browser >/dev/null 2>&1 && echo "agent-browser installed" || echo "agent-browser not installed"
 ```
 
-If not installed, inform the user: "`agent-browser` is not installed. Run `/ce-setup` for the current install command, then install agent-browser and retry." Then stop — this skill cannot function without agent-browser.
+If neither Chrome-AXI/direct Chrome DevTools nor `agent-browser` nor Playwright
+is available, inform the user which route was needed and stop. Do not silently
+downgrade a live/auth/session or extension-runtime claim to an isolated browser.
 
 ## Workflow
 
 ### 1. Verify Installation
 
-Before starting, verify `agent-browser` is available:
+Before starting, choose and verify the route using the Browser Runtime Routing
+Guard:
 
 ```bash
-command -v agent-browser >/dev/null 2>&1 && echo "Ready" || echo "NOT INSTALLED"
+command -v chrome-devtools-axi >/dev/null 2>&1 && echo "Chrome-AXI ready" || true
+command -v agent-browser >/dev/null 2>&1 && echo "agent-browser ready" || true
 ```
 
-If not installed, inform the user: "`agent-browser` is not installed. Run `/ce-setup` for the current install command, then install agent-browser and retry." Then stop.
+If the selected route is unavailable, report that route and choose the next
+valid fallback only if it still proves the required runtime class.
 
 ### 2. Ask Browser Mode
 
-**Pipeline mode (`mode:pipeline`):** Skip this step entirely. Default to headless — no question, no blocking. Proceed directly to step 3.
+**Pipeline mode (`mode:pipeline`):** Skip this step entirely. If the selected
+route is Chrome-AXI against a project-approved real Chrome, use an owned background tab in
+that browser. Otherwise default to headless where the selected route supports
+it. Proceed directly to step 3.
 
 **Manual mode:** Ask the user whether to run headed or headless using the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to presenting options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question:
 
@@ -59,7 +109,8 @@ Do you want to watch the browser tests run?
 2. Headless (faster) - Runs in background, faster but invisible
 ```
 
-Store the choice and use the `--headed` flag when the user selects option 1.
+Store the choice. Use the route's equivalent headed/visible mode when the user
+selects option 1; for `agent-browser`, use the `--headed` flag.
 
 ### 3. Determine Test Scope
 
@@ -181,15 +232,21 @@ else
   fi
 fi
 
-agent-browser open http://localhost:${PORT}
-agent-browser snapshot -i
+Open `http://localhost:${PORT}` with the selected browser route. Prefer
+Chrome-AXI for visual browser tests when available; fall back according to the
+Browser Runtime Routing Guard.
 ```
 
 ### 7. Test Each Affected Page
 
 For each affected route:
 
-**Navigate and capture snapshot:**
+**Navigate and capture evidence:**
+
+Use the selected browser route. With Chrome-AXI, open the route in an owned tab
+and capture screenshot/console/network evidence as needed. With `agent-browser`,
+the fallback shape is:
+
 ```bash
 agent-browser open "http://localhost:${PORT}/[route]"
 agent-browser snapshot -i
@@ -202,19 +259,26 @@ agent-browser --headed snapshot -i
 ```
 
 **Verify key elements:**
-- Use `agent-browser snapshot -i` to get interactive elements with refs
+- Use Chrome-AXI page inspection or `agent-browser snapshot -i` to get interactive elements with refs
 - Page title/heading present
 - Primary content rendered
 - No error messages visible
 - Forms have expected fields
 
 **Test critical interactions:**
+
+Use the selected route. `agent-browser` fallback example:
+
 ```bash
 agent-browser click @e1
 agent-browser snapshot -i
 ```
 
 **Take screenshots:**
+
+Use Chrome-AXI screenshots when it is the selected route. `agent-browser`
+fallback example:
+
 ```bash
 agent-browser screenshot page-name.png
 agent-browser screenshot --full page-name-full.png
@@ -251,7 +315,7 @@ Did it work correctly?
 When a test fails:
 
 1. **Document the failure:**
-   - Screenshot the error state: `agent-browser screenshot error.png`
+   - Screenshot the error state with the selected browser route
    - Note the exact reproduction steps
 
 2. **Ask the user how to proceed:**
@@ -318,7 +382,7 @@ After all tests complete, present a summary:
 /ce-test-browser --port 5000
 ```
 
-## agent-browser CLI Reference
+## agent-browser Fallback CLI Reference
 
 Run `agent-browser --help` for all commands.
 

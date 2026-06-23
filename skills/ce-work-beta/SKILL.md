@@ -1,7 +1,7 @@
 ---
 name: ce-work-beta
 description: "[BETA] Execute work with external delegate support. Same as ce-work but includes experimental Codex delegation mode for token-conserving code implementation."
-disable-model-invocation: true
+disable-model-invocation: false
 argument-hint: "[Plan doc path or description of work. Blank to auto use latest plan doc] [delegate:codex]"
 ---
 
