@@ -14,6 +14,14 @@ Hands-off execution is not branch consent. If branch/worktree approval is not
 explicit in the current conversation, the pipeline must recommend the branch
 shape and stop or continue read-only; it must not create branches implicitly.
 
+Before any downstream step plans, executes, reports, or dogfoods tests involving
+prototypes, browser checks, live services, LLM/provider calls, scraping,
+workflows, auth, persistence, or readiness, load and follow
+`../shared/references/evidence-authenticity-guard.md`. Hands-off execution is
+not consent to replace live evidence with mock/replay evidence. If a cheaper
+evidence mode is used, the final pipeline report must say what it proves and
+what it does not prove.
+
 1. Invoke the `ce-plan` skill with `$ARGUMENTS`.
 
    GATE: STOP. If ce-plan reported the task is non-software and cannot be processed in pipeline mode, stop the pipeline and inform the user that LFG requires software tasks. Otherwise, verify that the `ce-plan` workflow produced a plan file in `docs/plans/`. If no plan file was created, invoke `ce-plan` again with `$ARGUMENTS`. Do NOT proceed to step 2 until a written plan exists. **Record the plan file path** — it will be passed to ce-code-review in step 4.

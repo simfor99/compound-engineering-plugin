@@ -25,6 +25,15 @@ This skill does not implement code. It explores, clarifies, and documents decisi
 5. **Right-size the artifact** - Simple work gets a compact requirements document or brief alignment. Larger work gets a fuller document. Do not add ceremony that does not help planning.
 6. **Apply YAGNI to carrying cost, not coding effort** - Prefer the simplest approach that delivers meaningful value. Avoid speculative complexity and hypothetical future-proofing, but low-cost polish or delight is worth including when its ongoing cost is small and easy to maintain.
 
+## Evidence Authenticity Guard
+
+When the brainstorm discusses prototypes, tests, browser checks, live services,
+LLM/provider calls, scraping, workflows, readiness, or validation, read and
+apply `../shared/references/evidence-authenticity-guard.md`. The default user
+expectation for "test this" is live evidence unless a weaker mode is made
+explicit. Requirements documents must label mock/replay/prototype evidence as
+such and state what it proves and what it does not prove.
+
 ## Interaction Rules
 
 These rules apply to every brainstorm, including the universal (non-software) flow routed to `references/universal-brainstorming.md`.

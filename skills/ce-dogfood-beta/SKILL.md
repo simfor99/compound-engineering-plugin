@@ -54,6 +54,15 @@ Patch registry: in repos that define
 `docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
 that registry entry is the recovery source if this plugin cache is refreshed.
 
+## Evidence Authenticity Guard
+
+Before deriving the matrix or reporting readiness, read and apply
+`../shared/references/evidence-authenticity-guard.md`. A dogfood run must not
+turn mock/replay/browser-only evidence into a live readiness claim. When a flow
+depends on a real endpoint, scraper, LLM/provider, auth boundary, persistence,
+email, payment, or workflow side effect, test that leg live or mark it
+`Blocked`/`Not tested` with `does_not_prove` in the report.
+
 ## Prerequisites
 
 - A local dev server you can start (`bin/dev`, `rails server`, `npm run dev`, etc.).

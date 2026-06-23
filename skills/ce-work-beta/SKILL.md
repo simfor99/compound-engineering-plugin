@@ -99,6 +99,7 @@ Determine how to proceed based on what was provided in `<input_document>`.
 1. **Read Plan and Clarify** _(skip if arriving from Phase 0 with a bare prompt)_
 
    - Read the work document completely
+   - If the plan or work mentions tests, prototypes, browser checks, live services, LLM/provider calls, scraping, workflows, readiness, or validation, read and apply `../shared/references/evidence-authenticity-guard.md` before creating tasks. Default to live evidence for user-requested tests unless a weaker mock/replay/prototype mode was explicitly surfaced and accepted.
    - Treat the plan as a decision artifact, not an execution script
    - If the plan includes sections such as `Implementation Units`, `Work Breakdown`, `Requirements` (or legacy `Requirements Trace`), `Files`, `Test Scenarios`, or `Verification`, use those as the primary source material for execution
    - Check for `Execution note` on each implementation unit — these carry the plan's execution posture signal for that unit (for example, test-first or characterization-first). Note them when creating tasks.
@@ -110,6 +111,8 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - If clarifying questions were needed above, get user approval on the resolved answers. If no clarifications were needed, proceed without a separate approval step — plan scope is the plan's authority, not something to renegotiate
    - **Do not skip this** - better to ask questions now than build the wrong thing
    - **Do not edit the plan body during execution.** The plan is a decision artifact; progress lives in git commits and the task tracker, not the plan. `ce-work` does not mutate the plan — whether it shipped is derived from git, not recorded in the doc. Legacy plans may contain `- [ ]` / `- [x]` marks on unit headings or a `status:` field — ignore them as state; per-unit completion is determined during execution by reading the current file state.
+
+   **Evidence Claim Audit** — Before marking a task or final summary as live-tested, compare the evidence produced against `../shared/references/evidence-authenticity-guard.md`. State whether the result is `Verified live`, `Verified by replay/mock`, `Not tested`, or `Blocked`. If the path used fixtures, mocks, replay, cached artifacts, static projections, or simulated responses, say so plainly and do not claim live runtime, scraper, LLM/provider, workflow, auth, persistence, or production readiness.
 
 2. **Setup Environment**
 

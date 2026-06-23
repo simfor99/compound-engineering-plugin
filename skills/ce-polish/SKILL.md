@@ -44,6 +44,16 @@ Patch registry: in repos that define
 `docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
 that registry entry is the recovery source if this plugin cache is refreshed.
 
+## Evidence Authenticity Guard
+
+When polishing or reviewing a feature that uses tests, prototypes, replay data,
+mock states, live services, LLM/provider calls, scraping, workflows, auth,
+persistence, or readiness claims, read and apply
+`../shared/references/evidence-authenticity-guard.md`. Tell Simon plainly when a
+check is `static_mock` or `artifact_replay` instead of live. Do not call a
+polish finding live-tested unless the relevant backend/provider/workflow leg ran
+for real and the evidence supports that class.
+
 ## Phase 0: Get on the right branch
 
 Before any checkout that may create or materialize a local branch, load and

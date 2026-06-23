@@ -1,0 +1,4 @@
+interface:
+  display_name: "CE Skill Backup"
+  short_description: "Back up Compound Engineering skill patches to Simon's fork"
+  default_prompt: "Use $ce-skill-backup to back up the active Compound Engineering personal plugin cache into Simon's controlled fork."

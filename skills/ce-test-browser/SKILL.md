@@ -54,6 +54,17 @@ that registry entry is the recovery source if this plugin cache is refreshed.
 Use the selected route for opening pages, clicking elements, filling forms,
 taking screenshots, checking console/network, and scraping rendered content.
 
+## Evidence Authenticity Guard
+
+Before building or reporting a browser test matrix, read and apply
+`../shared/references/evidence-authenticity-guard.md` when any scenario could be
+mocked, replayed, simulated, cached, fixture-backed, or confused with a live
+runtime claim. Browser evidence alone proves what the browser observed. If the
+claim depends on a backend call, scraper, LLM/provider call, auth boundary,
+persistence, email, payment, or workflow side effect, pair the browser evidence
+with network/server/provider/trace evidence or report the live leg as untested
+or blocked.
+
 Platform-specific hints:
 - In Claude Code, do not use Chrome MCP tools (`mcp__claude-in-chrome__*`).
 - In Codex, prefer `chrome-devtools-axi` for the Chrome-AXI route and direct

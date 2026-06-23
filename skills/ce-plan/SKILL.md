@@ -80,6 +80,15 @@ Patch registry: in repos that define
 `docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
 that registry entry is the recovery source if this plugin cache is refreshed.
 
+#### Evidence Authenticity Guard
+
+When planned work includes tests, prototypes, browser checks, live services,
+LLM/provider calls, scraping, workflows, readiness, or validation, read and
+apply `../shared/references/evidence-authenticity-guard.md`. The default user
+expectation for "test this" is live evidence unless a weaker mode is made
+explicit. Plans must not let `static_mock` or `artifact_replay` satisfy a live
+runtime, workflow, auth, persistence, scraping, or LLM/provider-readiness claim.
+
 ## Plan Quality Bar
 
 Every plan should contain:
@@ -91,6 +100,8 @@ Every plan should contain:
 - Existing patterns or code references to follow
 - Enumerated test scenarios for each feature-bearing unit, specific enough that an implementer knows exactly what to test without inventing coverage themselves
 - Browser-evidence routing for user-visible UI or browser-runtime work, when material
+- Evidence class for material test scenarios where mock/replay/live confusion
+  would change the meaning of the result
 - Clear dependencies and sequencing
 
 A plan is ready when an implementer can start confidently without needing the plan to write the code for them.
@@ -568,6 +579,7 @@ For each unit, include:
   - **Edge cases** (when the unit has meaningful boundaries) - boundary values, empty inputs, nil/null states, concurrent access
   - **Error and failure paths** (when the unit has failure modes) - invalid input, downstream service failures, timeout behavior, permission denials
   - **Integration scenarios** (when the unit crosses layers) - behaviors that mocks alone will not prove, e.g., "creating X triggers callback Y which persists Z". Include these for any unit touching callbacks, middleware, or multi-layer interactions
+  - **Evidence authenticity** (when a scenario could be mistaken for stronger proof) - name the expected evidence class from `../shared/references/evidence-authenticity-guard.md`, plus `proves` and `does_not_prove`. If the first pass is mock/replay, add the live follow-up gate before readiness.
 - **Verification** - how an implementer should know the unit is complete, expressed as outcomes rather than shell command scripts
 
 Every feature-bearing unit should include the test file path in `**Files:**`.

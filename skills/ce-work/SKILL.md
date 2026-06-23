@@ -47,6 +47,7 @@ Determine how to proceed based on what was provided in `<input_document>`.
 1. **Read Plan and Clarify** _(skip if arriving from Phase 0 with a bare prompt)_
 
    - Read the work document completely. Plans may be markdown (`.md`) or HTML (`.html`) — both formats are read as text linearly. HTML plans carry the same section names and IDs as markdown plans, just wrapped in semantic HTML elements (`<section>`, `<article>`, etc.); section-finding works the same way (substring match on section names, ignoring HTML wrapper noise).
+   - If the plan or work mentions tests, prototypes, browser checks, live services, LLM/provider calls, scraping, workflows, readiness, or validation, read and apply `../shared/references/evidence-authenticity-guard.md` before creating tasks. Default to live evidence for user-requested tests unless a weaker mock/replay/prototype mode was explicitly surfaced and accepted.
    - When auto-detecting the latest plan (blank invocation), glob `docs/plans/*.md` AND `docs/plans/*.html` and pick the most recent regardless of extension.
    - Treat the plan as a decision artifact, not an execution script
    - If the plan includes sections such as `Implementation Units`, `Work Breakdown`, `Requirements` (or legacy `Requirements Trace`), `Files`, `Test Scenarios`, or `Verification`, use those as the primary source material for execution
@@ -302,6 +303,8 @@ that registry entry is the recovery source if this plugin cache is refreshed.
    **When to skip:** Leaf-node changes with no callbacks, no state persistence, no parallel interfaces. If the change is purely additive (new helper method, new view partial), the check takes 10 seconds and the answer is "nothing fires, skip."
 
    **When this matters most:** Any change that touches models with callbacks, error handling with fallback/retry, or functionality exposed through multiple interfaces.
+
+   **Evidence Claim Audit** — Before marking a task or final summary as live-tested, compare the evidence produced against `../shared/references/evidence-authenticity-guard.md`. State whether the result is `Verified live`, `Verified by replay/mock`, `Not tested`, or `Blocked`. If the path used fixtures, mocks, replay, cached artifacts, static projections, or simulated responses, say so plainly and do not claim live runtime, scraper, LLM/provider, workflow, auth, persistence, or production readiness.
 
 
 2. **Incremental Commits**
