@@ -50,9 +50,11 @@ unit or verification section. Do not run browser tests during planning.
 
 Default routing for the downstream executor:
 
-- Chrome-AXI is the preferred default route for visual UI/UX/design work and
-  for live/auth/session/CDP/extension-runtime evidence when the project-approved
-  Chrome is available.
+- Chrome-AXI headless is the preferred default route for local visual
+  UI/UX/design work. Use `127.0.0.1:<port>` instead of `localhost:<port>` for
+  local WSL dev servers.
+- Chrome-AXI against the project-approved visible Chrome is reserved for
+  live/auth/session/CDP/extension-runtime evidence.
 - Direct Chrome DevTools MCP is the fallback when AXI is unavailable or a
   specialized CDP operation needs it.
 - `agent-browser` remains valid for quick exploration when no live/auth/session
@@ -62,9 +64,11 @@ Default routing for the downstream executor:
   executor should refresh/discover capabilities and reload the AXI reference
   before changing route.
 - Downstream Chrome-AXI execution should open owned tabs with
-  `newpage <url> --background` by default and avoid bringing tabs to the front
-  unless Simon explicitly asks or manual visual inspection cannot be done from
-  screenshots/snapshots.
+  `env -u CHROME_DEVTOOLS_AXI_HEADED -u CHROME_DEVTOOLS_AXI_BROWSER_URL -u CHROME_DEVTOOLS_AXI_AUTO_CONNECT`
+  plus `newpage http://127.0.0.1:<port>/<route> --background` by default.
+  Avoid visible Chrome or direct Chrome-DevTools-MCP unless Simon explicitly
+  asks or a real existing browser session, login, or extension runtime is
+  proof-relevant.
 - Playwright is not the first browser-working route. Use it after Chrome-AXI
   observation when an important behavior should be codified as an automated
   regression, or when CI/headless/Cross-Browser evidence is explicitly required.

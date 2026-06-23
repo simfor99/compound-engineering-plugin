@@ -11,9 +11,10 @@ Start the dev server, open the feature in a browser, and iterate. You use the fe
 
 ## Browser Runtime Routing Guard
 
-For visual UI/UX/design work, prefer Chrome-AXI against the project-approved
-Chrome when it is available. This is the fastest default path for seeing the
-real rendered page, taking screenshots, and checking console/network evidence.
+For local visual UI/UX/design work, prefer Chrome-AXI headless with its own
+isolated browser. Do not connect to Simon's visible Chrome unless live
+auth/session/extension evidence is the point. Use `127.0.0.1:<port>` rather
+than `localhost:<port>` for local WSL dev servers.
 
 Fallbacks:
 - Use direct Chrome DevTools MCP when AXI is unavailable or a specialized CDP
@@ -28,14 +29,13 @@ Fallbacks:
 Browser automation uses owned tabs and closes them when the polish loop ends.
 Operational Chrome-AXI route: read
 `/home/simon/.codex/references/chrome-devtools-axi.md`, verify
-`command -v chrome-devtools-axi`, classify the project-approved Chrome endpoint,
-set `CHROME_DEVTOOLS_AXI_BROWSER_URL` when needed, then use `pages`,
-`newpage <url> --background`, `pages` to identify the owned tab id,
+`command -v chrome-devtools-axi`, then for local UI evidence use
+`env -u CHROME_DEVTOOLS_AXI_HEADED -u CHROME_DEVTOOLS_AXI_BROWSER_URL -u CHROME_DEVTOOLS_AXI_AUTO_CONNECT`
+with `newpage http://127.0.0.1:<port>/<route> --background`, `pages`,
 `selectpage`, `screenshot`, `console`/`network`, and `closepage` on that owned
-tab. Background tabs are the default for autonomous reviews; do not bring tabs
-to the front unless Simon explicitly asks or manual visual inspection cannot be
-done from screenshots/snapshots. Use `newpage about:blank` only when the
-specific run needs a blank starting tab.
+tab. Classify and set `CHROME_DEVTOOLS_AXI_BROWSER_URL` only when a real
+existing browser session, login, or extension runtime is proof-relevant. Use
+`newpage about:blank` only when the specific run needs a blank starting tab.
 Partial Tool Exposure: if only some AXI/Chrome-DevTools actions are visible at
 first, refresh/discover capabilities and reload the AXI reference before
 falling back. Do not use Playwright merely because screenshot/snapshot/navigation
@@ -80,18 +80,19 @@ Resolve the port with `bash scripts/resolve-port.sh --type <type>`.
 
 ### 1.3 Start the server
 
-Start the dev server in the background, log output to a temp file. Probe `http://localhost:<port>` for up to 30 seconds. If it doesn't come up, show the last 20 lines of the log and ask the user what to do.
+Start the dev server in the background, log output to a temp file. Probe `http://localhost:<port>` for up to 30 seconds. For Chrome-AXI headless browser access, open `http://127.0.0.1:<port>` even if the server probe used localhost. If it doesn't come up, show the last 20 lines of the log and ask the user what to do.
 
 ### 1.4 Open in browser
 
 Load `references/ide-detection.md` for the env-var probe table. If Chrome-AXI
-is available and the project-approved Chrome can be reached, open the feature
-there in an owned tab. Otherwise open the browser using the IDE's mechanism
-(Claude Code → `open`, Cursor → Cursor browser, VS Code → Simple Browser).
+is available, open the feature with AXI headless at `http://127.0.0.1:<port>`
+unless the polish task explicitly needs a real existing browser session. Use
+the IDE's visible browser mechanism only when AXI is unavailable or Simon asks
+for visible manual inspection.
 
 Tell the user:
 ```
-Dev server running on http://localhost:<port>
+Dev server running on http://localhost:<port> (AXI headless should open http://127.0.0.1:<port>)
 Browse the feature and tell me what could be better.
 ```
 

@@ -11,8 +11,10 @@ project-appropriate browser route.
 
 ## Browser Runtime Routing Guard
 
-Default to Chrome-AXI for visual UI/UX/design inspection when it is available
-and the project-approved Chrome can be reached. Also use Chrome-AXI for
+Default to Chrome-AXI headless for local visual UI/UX/design inspection. Do not
+connect to Simon's visible Chrome unless live auth/session/extension evidence is
+the point. Use `127.0.0.1:<port>` rather than `localhost:<port>` for local WSL
+dev servers. Use Chrome-AXI against the project-approved visible Chrome for
 auth/session, Chrome extension, Native Messaging, CDP, performance, or
 user-browser-near evidence. Direct Chrome DevTools MCP is the fallback when AXI
 is unavailable or a specialized CDP operation needs it.
@@ -32,14 +34,13 @@ after the run.
 
 Operational Chrome-AXI route: read
 `/home/simon/.codex/references/chrome-devtools-axi.md`, verify
-`command -v chrome-devtools-axi`, classify the project-approved Chrome endpoint,
-set `CHROME_DEVTOOLS_AXI_BROWSER_URL` when needed, then use `pages`,
-`newpage <url> --background`, `pages` to identify the owned tab id,
+`command -v chrome-devtools-axi`, then for local UI evidence use
+`env -u CHROME_DEVTOOLS_AXI_HEADED -u CHROME_DEVTOOLS_AXI_BROWSER_URL -u CHROME_DEVTOOLS_AXI_AUTO_CONNECT`
+with `newpage http://127.0.0.1:<port>/<route> --background`, `pages`,
 `selectpage`, `screenshot`, `console`/`network`, and `closepage` on that owned
-tab. Background tabs are the default for autonomous reviews; do not bring tabs
-to the front unless Simon explicitly asks or manual visual inspection cannot be
-done from screenshots/snapshots. Use `newpage about:blank` only when the
-specific run needs a blank starting tab.
+tab. Classify and set `CHROME_DEVTOOLS_AXI_BROWSER_URL` only when a real
+existing browser session, login, or extension runtime is proof-relevant. Use
+`newpage about:blank` only when the specific run needs a blank starting tab.
 
 Partial Tool Exposure: if only some AXI/Chrome-DevTools actions are visible at
 first, refresh/discover capabilities and reload the AXI reference before
@@ -232,9 +233,9 @@ else
   fi
 fi
 
-Open `http://localhost:${PORT}` with the selected browser route. Prefer
-Chrome-AXI for visual browser tests when available; fall back according to the
-Browser Runtime Routing Guard.
+Open `http://127.0.0.1:${PORT}` with Chrome-AXI headless for local browser
+tests. Use `http://localhost:${PORT}` for non-AXI tools only when that route is
+known to work. Fall back according to the Browser Runtime Routing Guard.
 ```
 
 ### 7. Test Each Affected Page
@@ -243,9 +244,10 @@ For each affected route:
 
 **Navigate and capture evidence:**
 
-Use the selected browser route. With Chrome-AXI, open the route in an owned tab
-and capture screenshot/console/network evidence as needed. With `agent-browser`,
-the fallback shape is:
+Use the selected browser route. With Chrome-AXI headless, open the route in an
+owned tab using `http://127.0.0.1:${PORT}` and capture
+screenshot/console/network evidence as needed. With `agent-browser`, the
+fallback shape is:
 
 ```bash
 agent-browser open "http://localhost:${PORT}/[route]"

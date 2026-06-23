@@ -13,8 +13,10 @@ This is **diff-scoped**, not whole-app exploration. You test what *this branch* 
 
 ## Browser Runtime Routing Guard
 
-Default to Chrome-AXI for visual UI/UX/design inspection when it is available
-and the project-approved Chrome can be reached. Also use Chrome-AXI for
+Default to Chrome-AXI headless for local visual UI/UX/design inspection. Do not
+connect to Simon's visible Chrome unless live auth/session/extension evidence is
+the point. Use `127.0.0.1:<port>` rather than `localhost:<port>` for local WSL
+dev servers. Use Chrome-AXI against the project-approved visible Chrome for
 auth/session, Chrome extension, Native Messaging, CDP, performance, or
 user-browser-near evidence. Direct Chrome DevTools MCP is the fallback when AXI
 is unavailable or a specialized CDP operation needs it.
@@ -35,14 +37,13 @@ after the run.
 
 Operational Chrome-AXI route: read
 `/home/simon/.codex/references/chrome-devtools-axi.md`, verify
-`command -v chrome-devtools-axi`, classify the project-approved Chrome endpoint,
-set `CHROME_DEVTOOLS_AXI_BROWSER_URL` when needed, then use `pages`,
-`newpage <url> --background`, `pages` to identify the owned tab id,
+`command -v chrome-devtools-axi`, then for local UI evidence use
+`env -u CHROME_DEVTOOLS_AXI_HEADED -u CHROME_DEVTOOLS_AXI_BROWSER_URL -u CHROME_DEVTOOLS_AXI_AUTO_CONNECT`
+with `newpage http://127.0.0.1:<port>/<route> --background`, `pages`,
 `selectpage`, `screenshot`, `console`/`network`, and `closepage` on that owned
-tab. Background tabs are the default for autonomous reviews; do not bring tabs
-to the front unless Simon explicitly asks or manual visual inspection cannot be
-done from screenshots/snapshots. Use `newpage about:blank` only when the
-specific run needs a blank starting tab.
+tab. Classify and set `CHROME_DEVTOOLS_AXI_BROWSER_URL` only when a real
+existing browser session, login, or extension runtime is proof-relevant. Use
+`newpage about:blank` only when the specific run needs a blank starting tab.
 
 Partial Tool Exposure: if only some AXI/Chrome-DevTools actions are visible at
 first, refresh/discover capabilities and reload the AXI reference before
@@ -163,9 +164,9 @@ Map changed files to concrete routes (views -> their pages, components -> pages 
 
 Determine the port (priority: explicit `--port` > a port explicitly stated in your in-context project instructions > `package.json` dev script > `.env*` `PORT=` > default `3000`). If a server is already listening, reuse it; otherwise start the project's dev command in the background and wait for the port to come up. This is the same mechanism `ce-test-browser` uses — follow its Phase 5–6 logic.
 
-Open `http://localhost:${PORT}` with the selected browser route. Prefer
-Chrome-AXI for visual dogfood when available; fall back according to the Browser
-Runtime Routing Guard.
+Open `http://127.0.0.1:${PORT}` with Chrome-AXI headless for local visual
+dogfood. Use `http://localhost:${PORT}` for non-AXI tools only when that route
+is known to work. Fall back according to the Browser Runtime Routing Guard.
 
 ### Phase 4: Execute the Matrix
 
