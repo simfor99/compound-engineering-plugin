@@ -18,7 +18,7 @@ bun run release:validate  # check plugin/marketplace consistency
 
 ## Working Agreement
 
-- **Branching:** Create a feature branch for any non-trivial change. If already on the correct branch for the task, keep using it; do not create additional branches or worktrees unless explicitly requested.
+- **Branching:** Recommend a feature branch for non-trivial change, but do not create, rename, or materialize branches or worktrees without explicit user approval in the current conversation. Follow `skills/shared/references/git-branch-consent-guard.md` before any branch/worktree mutation.
 - **Merge policy:** All changes to `main` go through pull requests. Direct pushes and direct merges are not allowed; branch protection on `main` enforces this by requiring the `test` status check to pass. The direct path bypasses `release:validate`, the test suite, and PR title validation — past direct merges have caused version drift requiring multi-PR recovery (see `docs/solutions/workflow/release-please-version-drift-recovery.md`).
 - **Safety:** Do not delete or overwrite user data. Avoid destructive commands.
 - **Testing:** Run `bun test` after changes that affect parsing, conversion, or output.

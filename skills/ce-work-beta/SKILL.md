@@ -125,28 +125,33 @@ Determine how to proceed based on what was provided in `<input_document>`.
    fi
    ```
 
+   Before creating or renaming any branch, or creating any worktree, load and
+   follow `../shared/references/git-branch-consent-guard.md`. This setup step
+   may recommend a branch or worktree, but the default action is to leave git
+   state unchanged unless the user explicitly approves the exact operation.
+
    **If already on a feature branch** (not the default branch):
 
    First, check whether the branch name is **meaningful** — a name like `feat/crowd-sniff` or `fix/email-validation` tells future readers what the work is about. Auto-generated worktree names (e.g., `worktree-jolly-beaming-raven`) or other opaque names do not.
 
-   If the branch name is meaningless or auto-generated, suggest renaming it before continuing:
+   If the branch name is meaningless or auto-generated, suggest renaming it before continuing, but do not rename unless the user explicitly approves the exact rename under the branch consent guard:
    ```bash
    git branch -m <meaningful-name>
    ```
    Derive the new name from the plan title or work description (e.g., `feat/crowd-sniff`). Present the rename as a recommended option alongside continuing as-is.
 
-   Then ask: "Continue working on `[current_branch]`, or create a new branch?"
+   Then ask: "Continue working on `[current_branch]`, or create a new branch?" If the user does not explicitly choose branch creation, continue in the current checkout when safe or stop if the work requires a branch.
    - If continuing (with or without rename), proceed to step 3
-   - If creating new, follow Option A or B below
+   - If creating new, follow Option A or B below only after branch consent guard approval
 
-   **If on the default branch**, choose how to proceed:
+   **If on the default branch**, recommend how to proceed, then wait for explicit user approval:
 
    **Option A: Create a new branch**
    ```bash
    git pull origin [default_branch]
    git checkout -b feature-branch-name
    ```
-   Use a meaningful name based on the work (e.g., `feat/user-authentication`, `fix/email-validation`).
+   Use a meaningful name based on the work (e.g., `feat/user-authentication`, `fix/email-validation`). Run these commands only after branch consent guard approval.
 
    **Option B: Use a worktree (recommended for parallel development)**
    ```bash
@@ -164,6 +169,10 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - You want to work on multiple features simultaneously
    - You want to keep the default branch clean while experimenting
    - You plan to switch between branches frequently
+
+   If the user does not answer or gives an ambiguous answer, do not create a
+   branch or worktree. Continue only with read-only analysis or work that is
+   safe in the current checkout.
 
 3. **Create Task List** _(skip if Phase 0 already built one, or if Phase 0 routed as Trivial)_
    - Use the platform's task tracking tool (`TaskCreate`/`TaskUpdate`/`TaskList` in Claude Code, `update_plan` in Codex, or the equivalent on other harnesses) to break the plan into actionable tasks

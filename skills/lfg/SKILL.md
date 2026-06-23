@@ -8,6 +8,12 @@ CRITICAL: You MUST execute every step below IN ORDER. Do NOT skip any required s
 
 When invoking any skill referenced below, resolve its name against the available-skills list the host platform provides and use that exact entry. Some platforms list skills under a plugin namespace (e.g., `compound-engineering:ce-plan`); others list the bare name. Invoking a short-form guess that isn't in the list will fail — always match a listed entry verbatim before calling the Skill/Task tool.
 
+Before any downstream step creates, renames, or materializes a branch or
+worktree, load and follow `../shared/references/git-branch-consent-guard.md`.
+Hands-off execution is not branch consent. If branch/worktree approval is not
+explicit in the current conversation, the pipeline must recommend the branch
+shape and stop or continue read-only; it must not create branches implicitly.
+
 1. Invoke the `ce-plan` skill with `$ARGUMENTS`.
 
    GATE: STOP. If ce-plan reported the task is non-software and cannot be processed in pipeline mode, stop the pipeline and inform the user that LFG requires software tasks. Otherwise, verify that the `ce-plan` workflow produced a plan file in `docs/plans/`. If no plan file was created, invoke `ce-plan` again with `$ARGUMENTS`. Do NOT proceed to step 2 until a written plan exists. **Record the plan file path** — it will be passed to ce-code-review in step 4.

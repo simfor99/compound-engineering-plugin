@@ -56,6 +56,8 @@ If both fail, fall back to `main`.
 
 If the git status from the context above shows a clean working tree (no staged, modified, or untracked files), report that there is nothing to commit and stop.
 
+Before creating or renaming any branch, load and follow `../shared/references/git-branch-consent-guard.md`. Branch creation is recommendation-first: if the user does not explicitly approve the exact branch action, do not create a branch.
+
 If the current branch from the context above is empty, the repository is in detached HEAD state. Explain that a branch is required before committing if the user wants this work attached to a branch. Ask whether to create a feature branch now. Use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to presenting options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
 
 - If the user chooses to create a branch, derive the name from the change content, create it with `git checkout -b <branch-name>`, then run `git branch --show-current` again and use that result as the current branch name for the rest of the workflow.
@@ -82,7 +84,7 @@ Keep this lightweight:
 
 ### Step 4: Stage and commit
 
-If the current branch from the context above is `main`, `master`, or the resolved default branch from Step 1, automatically create a feature branch before committing. Derive the branch name from the change content, create it with `git checkout -b <branch-name>`, run `git branch --show-current` to confirm, and use the new branch as the current branch for the rest of the workflow. Do not ask whether to branch — committing on the default branch is not an option here.
+If the current branch from the context above is `main`, `master`, or the resolved default branch from Step 1, recommend a feature branch before committing and follow `../shared/references/git-branch-consent-guard.md`. Do not create the branch unless the user explicitly approves the exact branch action. If the user declines or does not answer, do not commit to the default branch unless the user separately and explicitly approves committing there.
 
 Write the commit message:
 - **Subject line**: Concise, imperative mood, focused on *why* not *what*. Follow the convention determined in Step 2.

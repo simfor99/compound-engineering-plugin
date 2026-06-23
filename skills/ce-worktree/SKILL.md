@@ -9,6 +9,12 @@ Ensure the current work happens in an isolated workspace, without disturbing the
 
 Order of operations: **detect existing isolation -> prefer a native worktree tool -> fall back to plain git.** Never create a worktree the harness cannot see.
 
+Before creating any worktree or branch, load and follow
+`../shared/references/git-branch-consent-guard.md`. This skill may recommend
+worktree isolation, but invoking the skill is not consent to create a worktree.
+If the user does not explicitly approve the exact branch/worktree shape, leave
+git state unchanged.
+
 ## Step 0: Detect existing isolation
 
 Before creating anything, check whether the current directory is already a linked worktree. Compare the **resolved absolute** git dir against the **resolved absolute** common git dir — resolve each to an absolute path first and compare those, not the raw `git rev-parse` output. Git mixes absolute and relative forms depending on the current directory (from a subdirectory of a normal checkout, `--git-dir` comes back absolute while `--git-common-dir` may be relative), so a raw string compare yields a false "already isolated":
@@ -31,14 +37,14 @@ git rev-parse --show-superproject-working-tree
 
 ## Step 1: Prefer the harness's native worktree tool
 
-If the harness provides a native worktree primitive — for example an `EnterWorktree` / `WorktreeCreate` tool, a `/worktree` command, or a `--worktree` flag — use it and stop. Native tools place, track, and clean up the worktree so the harness can manage it. A behind-the-back `git worktree add` creates phantom state the harness cannot see, navigate to, or clean up.
+If the harness provides a native worktree primitive — for example an `EnterWorktree` / `WorktreeCreate` tool, a `/worktree` command, or a `--worktree` flag — use it only after the branch consent guard approves the exact branch/worktree shape, then stop. Native tools place, track, and clean up the worktree so the harness can manage it. A behind-the-back `git worktree add` creates phantom state the harness cannot see, navigate to, or clean up.
 
 ## Step 2: Git fallback
 
 Only when there is no native tool **and** Step 0 found no existing isolation.
 
 1. **Run from the repo root.** The `.worktrees/` and `.gitignore` paths below are repo-root-relative, but the skill runs from the user's current directory, which may be a subdirectory — so move to the root first: `cd "$(git rev-parse --show-toplevel)"`. Without this, `.worktrees/<branch>` and the `.gitignore` edit would land in the subdirectory (e.g. `src/.worktrees/...`, `src/.gitignore`) instead of at the repo root.
-2. Choose a meaningful branch name from the work description (e.g. `feat/login`, `fix/email-validation`) — avoid opaque auto-generated names. Pick a base branch (default: origin's default branch, else `main`).
+2. Choose a meaningful branch name from the work description (e.g. `feat/login`, `fix/email-validation`) — avoid opaque auto-generated names. Pick a base branch (default: origin's default branch, else `main`). Present the branch name, base branch, and worktree path through the branch consent guard before creating anything.
 3. **Ensure `.worktrees/` is gitignored before creating anything**, so worktree contents are never committed: check `git check-ignore -q .worktrees/` — **with the trailing slash**, so an existing directory-only `.worktrees/` rule is honored even before the directory exists (`git check-ignore .worktrees` without the slash would miss it and dirty a correctly-configured repo). If it is not ignored, add a `.worktrees/` line to `.gitignore`.
 4. Best-effort refresh the base branch without disturbing the current checkout: `git fetch origin <from-branch>`. This is **non-fatal** — if it errors (no `origin` remote, a differently-named remote, or a local-only branch), do not abort; continue to the next step and use the local ref.
 5. Create the worktree from the remote base when available, else the local ref: `git worktree add -b <branch-name> .worktrees/<branch-name> origin/<from-branch>`. If `origin/<from-branch>` does not exist, use the local `<from-branch>` ref instead.
@@ -59,7 +65,7 @@ cd "$(git rev-parse --show-toplevel)"      # return to the current checkout root
 
 ## When to create a worktree
 
-Create one (Step 1/2) only when you are **not** already isolated and you need a separate workspace:
+Create one (Step 1/2) only when you are **not** already isolated, you need a separate workspace, and the user explicitly approved the exact branch/worktree shape:
 
 - Reviewing a PR while keeping the current checkout free for other work
 - Running multiple features in parallel without branch-switching overhead
@@ -68,7 +74,7 @@ Do not create a worktree for single-task work that can happen on a branch in the
 
 ## Integration
 
-`ce-work` and `ce-code-review` offer this skill as an option. When the user selects "worktree" in those flows, run Step 0 first: if the work is already isolated, proceed in place; otherwise create one (native tool preferred) with a meaningful branch name derived from the work description.
+`ce-work` and `ce-code-review` offer this skill as an option. When the user selects "worktree" in those flows, run Step 0 first: if the work is already isolated, proceed in place; otherwise recommend one (native tool preferred) with a meaningful branch name derived from the work description, then follow the branch consent guard before creating it.
 
 ## Troubleshooting
 

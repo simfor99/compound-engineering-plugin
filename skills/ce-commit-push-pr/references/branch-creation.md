@@ -1,5 +1,11 @@
 # Branch creation from default branch
 
+Precondition: the caller has already loaded and followed
+`../../shared/references/git-branch-consent-guard.md`, and the user has
+explicitly approved the exact branch creation action in the current
+conversation. If not, stop and return to the caller; this reference is not
+permission to create a branch.
+
 Local `<base>` may have stale commits (another session/worktree advanced it) or commits the user authored intending to branch from later. Local git can't distinguish these — ask when unpushed commits are present.
 
 ## Decision flow

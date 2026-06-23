@@ -46,7 +46,13 @@ that registry entry is the recovery source if this plugin cache is refreshed.
 
 ## Phase 0: Get on the right branch
 
-1. If a PR number or branch name was provided, check it out (probe for existing worktrees first).
+Before any checkout that may create or materialize a local branch, load and
+follow `../shared/references/git-branch-consent-guard.md`. A PR number or
+branch name selects the polish scope; it is not consent to create a local
+branch. If consent is missing, prefer an existing worktree/current checkout or
+stop with the recommendation.
+
+1. If a PR number or branch name was provided, check it out only after probing for existing worktrees and applying the branch consent guard when local branch materialization would occur.
 2. If blank, use the current branch.
 3. Verify the current branch is not main/master.
 

@@ -82,6 +82,15 @@ that registry entry is the recovery source if this plugin cache is refreshed.
 
 Reuse `ce-test-browser`'s mechanics for port detection and dev-server startup (see Phase 3) rather than reinventing them.
 
+## Branch Consent Guard
+
+Before `gh pr checkout`, branch checkout that may materialize a local branch,
+or worktree creation, load and follow
+`../shared/references/git-branch-consent-guard.md`. A PR number, branch name, or
+dogfood request selects the test scope; it is not consent to create a local
+branch or worktree. If consent is missing, use read-only remote diff where
+possible or stop with the recommendation.
+
 ## Workflow
 
 ```
@@ -99,8 +108,8 @@ Reuse `ce-test-browser`'s mechanics for port detection and dev-server startup (s
 Parse `$ARGUMENTS`: a PR number, a branch name, or blank (use current branch). Strip `--port PORT` if present.
 
 1. Resolve the target branch:
-   - **PR number:** `gh pr checkout <number>` (probe for an existing worktree first).
-   - **Branch name:** check it out (probe for an existing worktree first).
+   - **PR number:** prefer an existing worktree or read-only PR metadata/diff. Run `gh pr checkout <number>` only after the branch consent guard approves any local branch materialization.
+   - **Branch name:** prefer the current checkout when already on that branch, an existing worktree, or read-only remote diff. Check it out only after the branch consent guard approves any local branch materialization.
    - **Blank:** use the current branch.
 2. **Refuse to run on `main`/`master`.** If the resolved branch is the trunk, stop and tell the user — there is no diff to dogfood.
 3. **Offer isolation.** Ask whether to run in a git worktree so the main checkout stays untouched (use the platform's blocking question tool). If yes, hand off to `ce-worktree`; if no, continue in place.

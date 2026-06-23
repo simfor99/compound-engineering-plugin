@@ -7,6 +7,8 @@ description: Commit, push, and open a PR with an adaptive, value-first descripti
 
 **Asking the user:** When this skill says "ask the user", use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to presenting the question in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
 
+**Branch consent guard:** Before creating, renaming, or materializing any branch or worktree, load and follow `../shared/references/git-branch-consent-guard.md`. This skill may recommend a branch, but it must not create one unless the user explicitly approves the exact branch action in the current conversation.
+
 ## Mode
 
 - **Description-only** — user wants *just* a description ("write/draft a PR description", "describe this PR", or pasted a PR URL/number alone). Run Step 4 only; print the result. Apply only if the user asks. If a PR ref was pasted, pass it to Step 4 so Pre-A resolves the right range.
@@ -50,7 +52,7 @@ The remote default branch returns something like `origin/main`; strip the `origi
 Branch routing:
 
 - **Detached HEAD** — explain a branch is required and ask whether to create a feature branch. If yes, derive a name from the change content. If no, stop.
-- **On default branch with work to do** (uncommitted, unpushed, or no upstream) — automatically create a feature branch (pushing the default directly is not supported). Derive a name from the change content and continue at Step 3, which handles branch creation safely. Do not ask whether to branch — committing on the default is not an option here.
+- **On default branch with work to do** (uncommitted, unpushed, or no upstream) — recommend a feature branch (pushing the default directly is not supported), derive a proposed name from the change content, and follow the branch consent guard. If the user declines, does not answer, or gives an ambiguous answer, do not create a branch and do not commit to the default branch unless the user separately and explicitly approves committing there.
 - **On default branch with no work** — report no feature branch work and stop.
 - **Feature branch** — continue.
 
@@ -62,7 +64,7 @@ Match repo style for commit messages and PR titles (project instructions in cont
 
 ## Step 3: Commit and push
 
-If on the default branch, branch creation needs to handle stale local `<base>`, unpushed commits on local `<base>`, and uncommitted changes that collide with the fresh remote base. Read `references/branch-creation.md` and follow its decision flow before continuing.
+If on the default branch and the user explicitly approved branch creation under the branch consent guard, branch creation needs to handle stale local `<base>`, unpushed commits on local `<base>`, and uncommitted changes that collide with the fresh remote base. Read `references/branch-creation.md` and follow its decision flow before continuing. If branch creation was not approved, stop before staging or committing.
 
 Scan changed files for naturally distinct concerns. If they clearly group into separate logical changes, create separate commits (2-3 max). Group at file level only — no `git add -p`. When ambiguous, one commit is fine.
 

@@ -12,6 +12,13 @@ Run metric-driven iterative optimization. Define a goal, build measurement scaff
 
 Use the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.
 
+Before creating, archiving, resetting, or deleting optimization branches or
+experiment worktrees, load and follow
+`../shared/references/git-branch-consent-guard.md`. Optimization may recommend
+an `optimize/<spec-name>` branch and experiment worktrees, but must not create
+them unless the user explicitly approves the exact branch/worktree shape in the
+current conversation.
+
 ## Input
 
 <optimization_input> #$ARGUMENTS </optimization_input>
@@ -236,6 +243,10 @@ Present the user with a choice via the platform question tool:
 
 ### 0.5 Create Optimization Branch and Scratch Space
 
+Recommend the optimization branch first, then follow the branch consent guard.
+If the user does not explicitly approve `optimize/<spec-name>`, do not create
+the branch and do not run worktree-backed experiments.
+
 ```bash
 git checkout -b "optimize/<spec-name>"  # or switch to existing if resuming
 ```
@@ -438,9 +449,10 @@ If the backlog is non-empty but no runnable hypotheses remain because everything
 For each hypothesis in the batch, dispatch according to `execution.mode`. In `serial` mode, run exactly one experiment to completion before selecting the next hypothesis. In `parallel` mode, dispatch the full batch concurrently.
 
 **Worktree backend:**
-1. Create experiment worktree:
+1. Create experiment worktree only after the branch consent guard approved the
+   optimization branch and worktree-backed experiment shape for this run:
    ```bash
-   WORKTREE_PATH=$(bash scripts/experiment-worktree.sh create "<spec_name>" <exp_index> "optimize/<spec_name>" <shared_files...>)  # creates optimize-exp/<spec_name>/exp-<NNN>
+   WORKTREE_PATH=$(CE_BRANCH_CONSENT_APPROVED=true bash scripts/experiment-worktree.sh create "<spec_name>" <exp_index> "optimize/<spec_name>" <shared_files...>)  # creates optimize-exp/<spec_name>/exp-<NNN>
    ```
 2. Apply port parameterization if configured (set env vars for the measurement script)
 3. Fill the experiment prompt template (`references/experiment-prompt-template.md`) with:

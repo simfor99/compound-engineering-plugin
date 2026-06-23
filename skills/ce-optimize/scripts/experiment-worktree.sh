@@ -92,6 +92,12 @@ create_worktree() {
   local base_branch="${3:?Error: base_branch required}"
   shift 3
 
+  if [[ "${CE_BRANCH_CONSENT_APPROVED:-}" != "true" ]]; then
+    echo -e "${RED}Error: experiment worktree creation requires explicit branch/worktree consent.${NC}" >&2
+    echo -e "${RED}Load skills/shared/references/git-branch-consent-guard.md, obtain approval, then rerun with CE_BRANCH_CONSENT_APPROVED=true.${NC}" >&2
+    return 1
+  fi
+
   local padded_index
   padded_index=$(printf "%03d" "$exp_index")
   local worktree_name="optimize-${spec_name}-exp-${padded_index}"
