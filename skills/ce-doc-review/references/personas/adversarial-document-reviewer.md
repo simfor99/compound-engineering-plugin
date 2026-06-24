@@ -26,6 +26,12 @@ Run the full 5-technique protocol only when adversarial scrutiny is genuinely us
 
 When suppressing techniques due to origin, do not emit findings of those types even if you notice candidates.
 
+If the prompt contains an `Active Supabase/DB guard:` block, include its
+database side-effect assumptions in your falsification work. Stress-test claims
+that DB readiness is proven by migration files, generated types, browser/API
+success, traces, mocks, or replays; those claims need same-target write-read
+evidence or an honest `blocked`, `deferred`, or `not_claimed` status.
+
 ## Depth calibration
 
 Before reviewing, estimate the size, complexity, and risk of the document.

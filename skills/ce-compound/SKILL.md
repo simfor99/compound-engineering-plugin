@@ -62,6 +62,28 @@ These files are the durable contract for the workflow. Read them on-demand at th
 
 When spawning subagents, pass the relevant file contents into the task prompt so they have the contract without needing cross-skill paths.
 
+If the solution being documented touches product/runtime prompts, System
+Prompt, User Prompt, output JSON, structured LLM output, provider requests,
+rendered prompts, workflow stages, model-visible data, prompt files, concrete
+prompt contracts, or evidence about what the model saw, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md` before writing the
+lesson. The documentation must preserve source class and evidence class; do not
+turn target contracts, examples, mocks, traces, or chat-memory summaries into
+current runtime truth.
+
+If the solution being documented touches Supabase, Postgres, SQL, database
+tables, columns, indexes, views, triggers, functions, schemas, migrations, RLS,
+policies, `auth.uid()`, auth/session persistence, storage buckets or policies,
+queues, cron, realtime, vectors, `service_role`, backfills, trace indexing,
+durable status writes, admin logs, audit logs, code-redemption persistence, or
+other durable database side effects, read and apply
+`../shared/references/supabase-database-change-guard.md` before writing the
+lesson. The documentation must preserve the honest evidence class: local
+migration files, generated types, API/browser success, trace artifacts, mocks,
+or replays are partial evidence only. Same-target write-read evidence is needed
+for DB readiness claims; accepted deferrals are recorded only as `blocked`,
+`deferred`, or `not_claimed`.
+
 ## Execution Strategy
 
 **In headless mode**, skip both questions below and go directly to **Full Mode** with session history disabled. Phase 1's session-history step (step 4) is omitted. Proceed straight to research.

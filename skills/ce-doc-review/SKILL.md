@@ -39,6 +39,57 @@ If `mode:headless` is not present, the skill runs in its default interactive mod
 
 **If a document path is provided:** Read it, then proceed.
 
+If the document contains product/runtime prompts, System Prompt, User Prompt,
+output JSON, structured LLM output, provider requests, rendered prompts,
+workflow stages, model-visible data, prompt files, or concrete prompt
+contracts, read `../shared/references/ce-runtime-prompt-contract-guard.md`
+before selecting personas. Pass prompt-contract concerns into the review brief:
+source class separation, repo profile presence, exactness/write-back rules,
+runtime/provider-request transport, output validation, and evidence class.
+
+If the document contains Supabase, Postgres, SQL, database tables, columns,
+indexes, views, triggers, functions, schemas, migrations, RLS, policies,
+`auth.uid()`, auth/session persistence, storage buckets or policies, queues,
+cron, realtime, vectors, `service_role`, backfills, trace indexing, durable
+status writes, admin logs, audit logs, code-redemption persistence, or
+production/staging database state, read
+`../shared/references/supabase-database-change-guard.md` before selecting
+personas. Pass database side-effect concerns into the review brief: target
+environment, migration governance, affected objects, RLS/access stance, real
+entry path, same-target write-read evidence, cleanup/retention, downstream
+reload/reference proof, and accepted deferrals.
+
+Build one `{active_guard_brief}` for the subagent template. If no shared guard
+triggered, set it to `Active guard brief: none`. If the Supabase/DB guard
+triggered, include a concise block headed `Active Supabase/DB guard:` with the
+target/evidence concerns and a reminder that migration files, generated types,
+API/browser success, traces, mocks, and replays are partial evidence only. If
+the runtime prompt-contract guard triggered too, include its prompt-contract
+concerns in the same active guard brief.
+
+If the document contains material product, architecture, governance, risk,
+security, cost, release, data-flow, prompt/runtime, evidence, or scope
+uncertainty, read `../shared/references/decision-assumption-ledger.md` before
+selecting personas and pass hidden-assumption concerns into the active guard
+brief. If the document contains P0/P1 source commitments, exact user decisions,
+must-survive facts, non-goals, or transfer/migration report items, read
+`../shared/references/source-coverage-matrix.md`. If it contains broad
+file/skill coverage or "update all" style work, read
+`../shared/references/ce-implementation-ledger.md`. If it contains readiness,
+workflow, persistence, provider, browser, trace, external side-effect, or ship
+claims, read `../shared/references/evidence-claim-integrity-guard.md`,
+`../shared/references/external-side-effect-reality-guard.md`, and
+`../shared/references/ce-quality-gates.md` as applicable.
+If the document contains a case matrix, UX matrix, acceptance examples, state
+machine, decision matrix, LLM/provider classification, scraper-driven behavior,
+workflow gates, auth/session gates, persistence, or production-readiness claim,
+read `../shared/references/case-matrix-coverage-guard.md` and pass its
+case-to-test mapping concerns into the active guard brief.
+
+Subagent findings are evidence, not truth. Read and apply
+`../shared/references/subagent-boundaries.md` when dispatching reviewers; the
+main synthesis owns final classification, contradictions, and document edits.
+
 **If no document is specified (interactive mode):** Ask which document to review, or find the most recent in `docs/brainstorms/` or `docs/plans/` using a file-search/glob tool (e.g., Glob in Claude Code).
 
 **If no document is specified (headless mode):** Output "Review failed: headless mode requires a document path. Re-invoke with: Skill(\"ce-doc-review\", \"mode:headless <path>\")" without dispatching agents.
@@ -105,6 +156,14 @@ Analyze the document content to determine which conditional personas to activate
 - Scope boundary language that seems misaligned with stated goals
 - Goals that don't clearly connect to requirements
 
+**evidence-coverage-auditor** -- activate when the document contains any case
+matrix, UX matrix, acceptance examples, state machine, decision matrix,
+LLM/provider classification, scraper-driven behavior, workflow gate,
+auth/session gate, persistence, external side effect, or readiness claim. This
+reviewer checks whether promised cases are mapped to verification scenarios with
+the correct evidence class and whether smoke tests are being overstated as
+readiness.
+
 **adversarial** -- activate when the document contains a high-value challenge surface, not merely structural complexity. Routine plans with stated rationale are not by themselves an adversarial signal — premise/assumption work re-litigates settled questions when the only signal is "this plan is well-structured." Activate when ANY of the following holds:
 
 - The document is a **requirements document** with 2+ challengeable claims (problem framing, solution selection, prioritization, predicted outcomes) -- premise scrutiny is core to the brainstorm phase
@@ -141,6 +200,7 @@ Add activated conditional personas:
 - `design-lens-reviewer`
 - `security-lens-reviewer`
 - `scope-guardian-reviewer`
+- `evidence-coverage-auditor`
 - `adversarial-document-reviewer`
 
 ### Dispatch
@@ -152,7 +212,7 @@ For each selected reviewer, read the matching skill-local prompt asset at `refer
 **Model tiering lives here, not in prompt assets.** Local prompt files have no frontmatter and carry no model metadata. Apply these dispatch-time preferences when the platform exposes a known model override; otherwise omit the override and inherit the parent model rather than guessing a platform-specific model name:
 
 - `coherence-reviewer`: cheapest capable extraction/reasoning tier.
-- `design-lens-reviewer`, `security-lens-reviewer`, `scope-guardian-reviewer`: platform mid-tier model.
+- `design-lens-reviewer`, `security-lens-reviewer`, `scope-guardian-reviewer`, `evidence-coverage-auditor`: platform mid-tier model.
 - `feasibility-reviewer`, `product-lens-reviewer`, `adversarial-document-reviewer`: inherit the parent model unless the harness has an established high-capability review tier.
 
 Each subagent receives the prompt built from the subagent template included below with these variables filled:
@@ -166,6 +226,7 @@ Each subagent receives the prompt built from the subagent template included belo
 | `{origin_path}` | Value of the document's `origin:` frontmatter field if present, or the literal string `none` if absent. Personas that adapt on origin (product-lens, adversarial, scope-guardian) read this slot to gate technique suppression — they do NOT re-parse frontmatter themselves. Extract this once during Phase 1 reading. |
 | `{document_content}` | Full text of the document |
 | `{decision_primer}` | Cumulative prior-round decisions in the current session, or an empty `<prior-decisions>` block on round 1. See "Decision primer" below. |
+| `{active_guard_brief}` | `Active guard brief: none` unless runtime prompt-contract or Supabase/DB guard concerns triggered in Phase 1; when triggered, a concise guard block the reviewer must apply. |
 
 Pass each subagent the **full document** — do not split into sections.
 

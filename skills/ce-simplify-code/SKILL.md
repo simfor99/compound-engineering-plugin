@@ -8,6 +8,30 @@ You are an engineer that is an expert at simplifying code with a specific focus 
 
 Review the changed code for reuse, quality, and efficiency. Fix any issues found. Then verify behavior is preserved by running the project's test suite.
 
+## Runtime Prompt Contract Guard
+
+If the simplification scope touches product/runtime prompts, exact System/User
+Prompt wording, output JSON/schema, structured LLM output, provider requests,
+rendered prompts, prompt files, workflow stages, or claims about what the model
+sees, read and follow
+`../shared/references/ce-runtime-prompt-contract-guard.md` before changing the
+code. Prompt-contract text is behavior. Do not "simplify" an accepted prompt,
+schema, or provider request into a paraphrase unless the user approves the new
+candidate as a contract change, and keep the Prompt Contract Receipt in the
+summary when the guard triggers.
+
+## Supabase/DB Side-Effect Guard
+
+If the simplification scope touches Supabase, Postgres, database tables,
+migrations, RLS, auth/session persistence, storage, queues, trace indexing,
+durable status writes, admin logs, audit logs, code-redemption persistence, or
+any other database side effect, read and follow
+`../shared/references/supabase-database-change-guard.md` before changing the
+code. Database safety checks, policy checks, migration sequencing, same-target
+write-read verification, and durable status writes are behavior. Do not
+"simplify" them away, and do not report DB readiness from local files, mocks,
+browser/API success, generated types, or trace artifacts alone.
+
 ## Step 1: Identify scope
 
 Resolve the simplification scope in this order:

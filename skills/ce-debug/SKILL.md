@@ -17,6 +17,26 @@ Find root causes, then fix them. This skill investigates bugs systematically —
 3. **One change at a time.** Test one hypothesis, change one thing. If you're changing multiple things to "see if it helps," stop — that is shotgun debugging.
 4. **When stuck, diagnose why — don't just try harder.**
 
+## Runtime Prompt Contract Guard
+
+When debugging behavior that involves product/runtime prompts, System Prompt,
+User Prompt, output JSON, structured LLM output, provider requests, rendered
+prompts, model-visible data, prompt files, prompt-loading, workflow stages, or
+prompt/runtime parity, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md`. Do not "fix" prompt
+behavior by paraphrasing an accepted contract or by treating prompt files as
+proof of what the provider received.
+
+## Supabase Database Change Guard
+
+When debugging behavior that involves Supabase, Postgres, database tables,
+migrations, RLS, auth/session persistence, storage, queues, trace indexing,
+durable status writes, admin logs, audit logs, or code-redemption persistence,
+read and apply `../shared/references/supabase-database-change-guard.md`. Do not
+diagnose persistence from API/browser success alone; verify the target
+environment, schema/policy state, row/object state, status/error fields, and
+downstream reload path when those claims are part of the bug.
+
 ## Execution Flow
 
 | Phase | Name | Purpose |

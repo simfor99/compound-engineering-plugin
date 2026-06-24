@@ -21,7 +21,12 @@ DEFAULT_REPO = Path("/home/simon/plugins/compound-engineering")
 
 BACKUP_PATHS = [
     Path("AGENTS.md"),
+    Path("package.json"),
     Path("skills"),
+    Path("src/release"),
+    Path("scripts/release"),
+    Path(".opencode"),
+    Path(".pi"),
     Path(".agents/plugins/marketplace.json"),
     Path(".agy/plugin.json"),
     Path(".claude-plugin/marketplace.json"),
@@ -232,10 +237,23 @@ def print_drift_report(cache_root: Path, repo: Path) -> None:
     drift = compare_cache_to_fork(cache_root, repo)
     remote_state, branch_line = remote_status(repo)
     action = action_needed(cache_root, repo)
+    cache_manifest = cache_root / "skills/shared/ce-bundle.json"
+    repo_manifest = repo / "skills/shared/ce-bundle.json"
+    if cache_manifest.exists() and repo_manifest.exists():
+        manifest_state = (
+            "checksum_match"
+            if sha256_file(cache_manifest) == sha256_file(repo_manifest)
+            else "checksum_mismatch"
+        )
+    elif cache_manifest.exists() or repo_manifest.exists():
+        manifest_state = "missing_one_side"
+    else:
+        manifest_state = "missing_both"
 
     print(f"remote_status={remote_state}")
     print(f"remote_branch={branch_line}")
     print(f"cache_vs_fork={'drift_detected' if has_drift(drift) else 'in_sync'}")
+    print(f"bundle_manifest={manifest_state}")
     print(f"action_needed={action}")
     if action in {"apply_backup", "commit_push"}:
         print(

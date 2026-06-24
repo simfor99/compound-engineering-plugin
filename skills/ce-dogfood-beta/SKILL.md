@@ -63,6 +63,45 @@ depends on a real endpoint, scraper, LLM/provider, auth boundary, persistence,
 email, payment, or workflow side effect, test that leg live or mark it
 `Blocked`/`Not tested` with `does_not_prove` in the report.
 
+## Runtime Prompt Contract Guard
+
+When the diff or dogfood matrix involves product/runtime prompts, System Prompt,
+User Prompt, output JSON, structured LLM output, provider requests, rendered
+prompts, model-visible data, prompt files, workflow stages, or prompt/runtime
+parity, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md`. A dogfood report
+must include the Prompt Contract Receipt for triggered work and must not promote
+browser-only observations into provider-request, output-contract, or readiness
+claims.
+
+## Supabase/DB Side-Effect Guard
+
+When the diff or dogfood matrix involves Supabase, Postgres, database tables,
+migrations, RLS, auth/session persistence, storage, queues, trace indexing,
+durable status writes, admin logs, audit logs, code-redemption persistence, or
+any durable database side effect, read and apply
+`../shared/references/supabase-database-change-guard.md`. A dogfood report must
+include the Supabase/DB Guard receipt for triggered work and must not promote a
+browser pass, API response, trace artifact, generated type, migration file, or
+mocked fixture into persistence/schema readiness without same-target write-read
+evidence. Accepted deferrals are reported only as `blocked`, `deferred`, or
+`not_claimed`, never as passed readiness.
+
+## Evidence Claim and External Side-Effect Guards
+
+Before reporting readiness, read and apply
+`../shared/references/evidence-claim-integrity-guard.md`. A dogfood report must
+state the claim class, evidence class, what the run proves, and what it does
+not prove when browser, API, trace, workflow, provider, persistence, or
+production-readiness claims are at risk of being overstated.
+
+When the diff or matrix involves email, billing, payments, webhooks, queues,
+storage, auth/session state, durable workflow status, trace visibility, admin
+logs, or audit logs, read and apply
+`../shared/references/external-side-effect-reality-guard.md`. Do not treat a
+browser pass or API response as external delivery/readback proof unless that
+leg actually ran and was observed.
+
 ## Prerequisites
 
 - A local dev server you can start (`bin/dev`, `rails server`, `npm run dev`, etc.).

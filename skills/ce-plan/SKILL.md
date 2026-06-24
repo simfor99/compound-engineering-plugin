@@ -89,6 +89,74 @@ expectation for "test this" is live evidence unless a weaker mode is made
 explicit. Plans must not let `static_mock` or `artifact_replay` satisfy a live
 runtime, workflow, auth, persistence, scraping, or LLM/provider-readiness claim.
 
+#### Case Matrix Coverage Guard
+
+When an origin document, current plan, or user discussion includes a case
+matrix, UX matrix, acceptance examples, state machine, decision matrix,
+LLM/provider classification, scraper-driven behavior, workflow gate,
+auth/session gate, persistence, or production-readiness claim, read and apply
+`../shared/references/case-matrix-coverage-guard.md`. Plans must map every
+readiness-bearing origin case to a concrete verification scenario or quality
+gate with evidence class, claim class, `proves`, and `does_not_prove`. A plan may
+use representative examples for smoke testing, but must label that as
+`smoke_only` and add a separate exhaustive live or production-like matrix gate
+before claiming runtime, scraper, provider, workflow, auth, persistence,
+side-effect, or production readiness. Missing rows must be marked `deferred`,
+`not_claimed`, or `not_applicable`; silence is not coverage.
+
+#### Runtime Prompt Contract Guard
+
+When planned work includes product/runtime prompts, System Prompt, User Prompt,
+output JSON, structured LLM output, provider requests, rendered prompts,
+workflow stages, model-visible data, prompt files, or concrete prompt contracts,
+read and apply `../shared/references/ce-runtime-prompt-contract-guard.md`.
+Plans must name the authoritative prompt contract source, productive prompt
+target or unknown target, runtime/provider-request path, output contract tests,
+and evidence class for claims that could be confused with live provider or
+runtime proof. If the plan accepts concrete prompt text as a build target,
+persist the exact prompt text in Markdown prompt files in a plan-local sidecar
+at `docs/plans/<plan-stem>/prompts/`, persist variables/output/runtime binding
+in `docs/plans/<plan-stem>/prompt-contracts/`, and link both folders from the
+plan; do not use global `docs/plans/prompts/` or
+`docs/plans/prompt-contracts/` collections.
+
+#### Supabase Database Change Guard
+
+When planned work includes Supabase, Postgres, SQL, database tables, columns,
+indexes, views, triggers, functions, schemas, migrations, RLS, policies,
+`auth.uid()`, auth/session persistence, storage buckets or policies, queues,
+cron, realtime, vectors, `service_role`, backfills, trace indexing, durable
+status writes, admin logs, audit logs, code-redemption persistence, or
+production/staging database state, read and apply
+`../shared/references/supabase-database-change-guard.md`. Plans must include a
+database gate or accepted deferral with target environment, migration
+governance, affected objects, RLS/access stance, real entry path, write-read
+evidence, cleanup/retention, and downstream reload/reference proof when
+applicable. A deferral is not readiness; it may only be planned as `blocked`,
+`deferred`, or `not_claimed`. Do not let a migration file, generated type, API
+response, browser flow, trace artifact, or unit test satisfy DB-readiness by
+itself.
+
+#### OpenSpec-transfer governance guards
+
+When planning material decisions or assumptions, read and apply
+`../shared/references/decision-assumption-ledger.md`. If a source artifact has
+P0/P1 items, exact user decisions, non-goals, prompt contracts, or must-survive
+facts, read and apply `../shared/references/source-coverage-matrix.md`.
+
+When a plan contains readiness, workflow, persistence, trace, provider,
+browser, or external-system claims, read and apply
+`../shared/references/evidence-claim-integrity-guard.md` and
+`../shared/references/external-side-effect-reality-guard.md` as applicable.
+Plans must name the narrow claim class and avoid making UI/API success stand in
+for persistence, provider behavior, trace visibility, or side-effect delivery.
+
+For broad or migration-like work, read
+`../shared/references/ce-implementation-ledger.md` and plan a lightweight
+ledger or explicitly state why one is unnecessary. For risky or ship-relevant
+work, read `../shared/references/ce-quality-gates.md` and include gates or
+accepted deferrals with timing, status, evidence, and block effect.
+
 ## Plan Quality Bar
 
 Every plan should contain:
@@ -102,6 +170,19 @@ Every plan should contain:
 - Browser-evidence routing for user-visible UI or browser-runtime work, when material
 - Evidence class for material test scenarios where mock/replay/live confusion
   would change the meaning of the result
+- Evidence claim integrity for material readiness claims, including `proves`
+  and `does_not_prove`
+- Case-matrix coverage for readiness-bearing UX matrices, acceptance examples,
+  state machines, LLM/provider classifications, scraper paths, workflow gates,
+  auth gates, persistence, or external side effects. Representative examples
+  must be labeled as smoke only; readiness requires mapped rows or explicit
+  `deferred` / `not_claimed` rows
+- Prompt-contract source, runtime transport, and output-contract verification
+  details when the work touches product/runtime prompts or model-visible
+  behavior
+- Quality gates or accepted deferrals for prompt, DB, browser, side-effect,
+  security, release, backup, or evidence-sensitive work
+- Source coverage for material source artifacts whose P0/P1 items must survive
 - Clear dependencies and sequencing
 
 A plan is ready when an implementer can start confidently without needing the plan to write the code for them.
@@ -580,6 +661,10 @@ For each unit, include:
   - **Error and failure paths** (when the unit has failure modes) - invalid input, downstream service failures, timeout behavior, permission denials
   - **Integration scenarios** (when the unit crosses layers) - behaviors that mocks alone will not prove, e.g., "creating X triggers callback Y which persists Z". Include these for any unit touching callbacks, middleware, or multi-layer interactions
   - **Evidence authenticity** (when a scenario could be mistaken for stronger proof) - name the expected evidence class from `../shared/references/evidence-authenticity-guard.md`, plus `proves` and `does_not_prove`. If the first pass is mock/replay, add the live follow-up gate before readiness.
+  - **Evidence claim integrity** (when a scenario supports readiness/completion) - name the claim class from `../shared/references/evidence-claim-integrity-guard.md`, what the evidence proves, and the stronger claims it does not prove.
+  - **Case matrix coverage** (when origin requirements or this plan define a case matrix, UX matrix, acceptance examples, state machine, decision matrix, or LLM/provider/scraper/workflow outcome set) - map each readiness-bearing origin case to a test scenario or quality gate using the Case ID, expected user-visible outcome, expected machine outcome, evidence class, claim class, readiness gate, `proves`, and `does_not_prove` fields from `../shared/references/case-matrix-coverage-guard.md`. If only a representative subset is tested, label it `smoke_only` and state which rows remain `deferred` or `not_claimed`.
+  - **Supabase/DB side effects** (when the unit writes durable state, changes schema/RLS, or claims persisted status) - name the target environment, migration path, affected objects, expected IDs/fields, same-target write-read check, cleanup/retention stance, and what remains unproven, following `../shared/references/supabase-database-change-guard.md`.
+  - **External side effects** (when the unit sends email, touches billing, emits webhooks, writes queues/storage/auth/session/trace visibility, or changes durable workflow status) - name the target environment, entry path, write evidence, readback/visibility evidence, cleanup/rollback stance, and claim status following `../shared/references/external-side-effect-reality-guard.md`.
 - **Verification** - how an implementer should know the unit is complete, expressed as outcomes rather than shell command scripts
 
 Every feature-bearing unit should include the test file path in `**Files:**`.

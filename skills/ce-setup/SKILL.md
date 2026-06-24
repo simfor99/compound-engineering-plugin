@@ -12,6 +12,12 @@ Ask each question below using the platform's blocking question tool: `AskUserQue
 
 `ce-setup` is a lightweight health check and repo-local config helper. It does **not** bulk-install every optional dependency. Missing tools are reported as optional capabilities so the user can install only the workflows they use.
 
+`ce-setup` is also the canonical interactive owner for
+`.compound-engineering/prompt-contracts.md` setup and refresh. When the user
+asks to set up, create, reload, refresh, or update CE prompt contracts, read
+`../shared/references/ce-runtime-prompt-contract-guard.md` and run that
+reference's repo profile flow. Do not silently create or rewrite the profile.
+
 ## Phase 1: Diagnose
 
 ### Step 1: Determine Plugin Version
@@ -47,6 +53,10 @@ If the script is unavailable, perform the inline equivalent:
 3. Check for obsolete `compound-engineering.local.md` at the repo root.
 4. Check whether `.compound-engineering/config.local.yaml` exists and, if it does, whether `git check-ignore -q .compound-engineering/config.local.yaml` succeeds.
 5. Compare `.compound-engineering/config.local.example.yaml` with `references/config-template.yaml` when the template is readable; otherwise report that the example refresh must be done manually.
+6. If the setup request mentions prompt contracts or the repo contains
+   `.compound-engineering/prompt-contracts.md`, check whether the profile
+   exists and report its status. Profile creation/refresh follows
+   `../shared/references/ce-runtime-prompt-contract-guard.md`.
 
 Display the diagnostic output to the user. Missing optional tools are not setup failures.
 
@@ -57,6 +67,8 @@ Proceed to Phase 2 only if one or more repo-local project issues exist:
 - obsolete `compound-engineering.local.md`
 - `.compound-engineering/config.local.yaml` exists but is not safely gitignored
 - `.compound-engineering/config.local.example.yaml` is missing or outdated
+- `.compound-engineering/prompt-contracts.md` setup or refresh was explicitly
+  requested
 
 If no project issues exist, report:
 

@@ -1,7 +1,7 @@
 ---
 name: ce-work-beta
 description: "[BETA] Execute work with external delegate support. Same as ce-work but includes experimental Codex delegation mode for token-conserving code implementation."
-disable-model-invocation: false
+disable-model-invocation: true
 argument-hint: "[Plan doc path or description of work. Blank to auto use latest plan doc] [delegate:codex]"
 ---
 
@@ -83,6 +83,11 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - Identify files likely to change based on the prompt
    - Find existing test files for those areas (search for test/spec files that import, reference, or share names with the implementation files)
    - Note local patterns and conventions in the affected areas
+   - If the prompt mentions tests, prototypes, browser checks, live services, LLM/provider calls, scraping, workflows, readiness, or validation, read and apply `../shared/references/evidence-authenticity-guard.md` before routing.
+   - If the prompt includes material readiness or completion claims, read and apply `../shared/references/evidence-claim-integrity-guard.md` before routing.
+   - If the prompt mentions product/runtime prompts, System Prompt, User Prompt, output JSON, structured LLM output, provider requests, rendered prompts, workflow stages, model-visible data, prompt files, or concrete prompt contracts, read and apply `../shared/references/ce-runtime-prompt-contract-guard.md` before routing.
+   - If the prompt mentions Supabase, Postgres, SQL, database tables, columns, indexes, views, triggers, functions, schemas, migrations, RLS, policies, `auth.uid()`, auth/session persistence, storage buckets or policies, queues, cron, realtime, vectors, `service_role`, backfills, trace indexing, durable status writes, admin logs, audit logs, code-redemption persistence, or production/staging database state, read and apply `../shared/references/supabase-database-change-guard.md` before routing.
+   - If the prompt mentions email, billing, payments, subscriptions, invoices, webhooks, queues, storage, auth/session state, durable workflow status, trace visibility, admin logs, or audit logs, read and apply `../shared/references/external-side-effect-reality-guard.md` before routing.
 
 2. **Assess complexity and route**
 
@@ -100,6 +105,13 @@ Determine how to proceed based on what was provided in `<input_document>`.
 
    - Read the work document completely
    - If the plan or work mentions tests, prototypes, browser checks, live services, LLM/provider calls, scraping, workflows, readiness, or validation, read and apply `../shared/references/evidence-authenticity-guard.md` before creating tasks. Default to live evidence for user-requested tests unless a weaker mock/replay/prototype mode was explicitly surfaced and accepted.
+   - If the plan or work contains readiness, workflow, persistence, trace, provider, browser, or external-system claims, read and apply `../shared/references/evidence-claim-integrity-guard.md` before creating tasks.
+   - If the plan or work mentions product/runtime prompts, System Prompt, User Prompt, output JSON, structured LLM output, provider requests, rendered prompts, workflow stages, model-visible data, prompt files, or concrete prompt contracts, read and apply `../shared/references/ce-runtime-prompt-contract-guard.md` before creating tasks. Do not implement prompt-contract-bearing work from chat memory when the authoritative contract, repo prompt profile, or runtime transport path is missing.
+   - If the plan or work mentions Supabase, Postgres, SQL, database tables, columns, indexes, views, triggers, functions, schemas, migrations, RLS, policies, `auth.uid()`, auth/session persistence, storage buckets or policies, queues, cron, realtime, vectors, `service_role`, backfills, trace indexing, durable status writes, admin logs, audit logs, code-redemption persistence, or production/staging database state, read and apply `../shared/references/supabase-database-change-guard.md` before creating implementation tasks. Do not claim DB readiness from migration files, generated types, API responses, browser flows, trace artifacts, or unit tests without same-target write-read evidence. An accepted deferral only permits `blocked`, `deferred`, or `not_claimed`; it is not readiness.
+   - If the plan or work mentions email, billing, payments, subscriptions, invoices, webhooks, queues, storage, auth/session state, durable workflow status, trace visibility, admin logs, or audit logs, read and apply `../shared/references/external-side-effect-reality-guard.md` before creating tasks. Do not claim side-effect delivery from UI/API success alone.
+   - If the plan or goal names material gates, broad file coverage, or source must-survive items, read and apply `../shared/references/ce-quality-gates.md`, `../shared/references/ce-implementation-ledger.md`, and `../shared/references/source-coverage-matrix.md` as applicable.
+   - If execution will use subagents, delegated workers, review agents, or background agents, read and apply `../shared/references/subagent-boundaries.md` before dispatch. Subagents provide evidence and suggested diffs; the main agent owns final interpretation, source verification, claim wording, tests, and completion status.
+   - For prompt-contract-bearing plans, check for plan-local sidecars at `docs/plans/<plan-stem>/prompts/` and `docs/plans/<plan-stem>/prompt-contracts/`, then read their `INDEX.md` files plus referenced Markdown prompt files and contract files before creating implementation tasks. Do not substitute global `docs/plans/prompts/` or `docs/plans/prompt-contracts/` folders or chat memory for the plan-owned bundle.
    - Treat the plan as a decision artifact, not an execution script
    - If the plan includes sections such as `Implementation Units`, `Work Breakdown`, `Requirements` (or legacy `Requirements Trace`), `Files`, `Test Scenarios`, or `Verification`, use those as the primary source material for execution
    - Check for `Execution note` on each implementation unit — these carry the plan's execution posture signal for that unit (for example, test-first or characterization-first). Note them when creating tasks.
@@ -113,6 +125,46 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - **Do not edit the plan body during execution.** The plan is a decision artifact; progress lives in git commits and the task tracker, not the plan. `ce-work` does not mutate the plan — whether it shipped is derived from git, not recorded in the doc. Legacy plans may contain `- [ ]` / `- [x]` marks on unit headings or a `status:` field — ignore them as state; per-unit completion is determined during execution by reading the current file state.
 
    **Evidence Claim Audit** — Before marking a task or final summary as live-tested, compare the evidence produced against `../shared/references/evidence-authenticity-guard.md`. State whether the result is `Verified live`, `Verified by replay/mock`, `Not tested`, or `Blocked`. If the path used fixtures, mocks, replay, cached artifacts, static projections, or simulated responses, say so plainly and do not claim live runtime, scraper, LLM/provider, workflow, auth, persistence, or production readiness.
+
+   **Claim Integrity Audit** — Before marking a readiness or completion claim
+   done, compare the claim against
+   `../shared/references/evidence-claim-integrity-guard.md`. State the claim
+   class, evidence class, what is proven, what is not proven, and residual
+   risk. Do not claim workflow completion from workflow start, persistence from
+   UI/API success, provider behavior from replay, or trace visibility from
+   trace-file creation.
+
+   **Prompt Contract Audit** — Before marking prompt-contract-bearing work done,
+   compare the implementation against
+   `../shared/references/ce-runtime-prompt-contract-guard.md`. State whether the
+   accepted contract survived into the productive prompt file, rendered
+   System/User Prompt, effective provider request, parsed output, runtime
+   validator, downstream handoff/consumer, and trace/review evidence. If any leg
+   is untested or intentionally deferred, say so plainly.
+
+   **Supabase/DB Side-Effect Audit** — Before marking database or Supabase work
+   done, compare the implementation against
+   `../shared/references/supabase-database-change-guard.md`. State the target
+   environment, migration governance loaded, affected objects, RLS/access
+   stance, entry path, same-target write-read evidence, cleanup/retention
+   stance, downstream reload/reference proof, and any accepted deferral. Treat
+   deferrals as `blocked`, `deferred`, or `not_claimed`, never as passed
+   readiness. If only
+   local files, mocks, API/browser success, traces, or generated types exist,
+   do not claim persistence or schema readiness.
+
+   **External Side-Effect Audit** — Before claiming email, billing, webhook,
+   queue, storage, auth/session, durable workflow status, trace visibility,
+   admin-log, or audit-log side effects, compare the implementation against
+   `../shared/references/external-side-effect-reality-guard.md`. State target
+   environment, entry path, write evidence, readback/visibility evidence,
+   cleanup/rollback stance, claim status, and `does_not_prove`.
+
+   **Completion Verification Audit** — Before final summary, compare the work
+   against `../shared/references/ce-completion-verification.md`. State whether
+   completion is `verified_complete`, `verified_with_deferrals`,
+   `not_complete`, or `blocked`; do not let a positive review replace this
+   source-of-truth check.
 
 2. **Setup Environment**
 
@@ -216,6 +268,7 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - **Other platforms** without built-in worktree isolation: subagents share the orchestrator's directory.
 
    **Subagent dispatch** uses your available subagent or task spawning mechanism. For each unit, give the subagent:
+   - The relevant constraints from `../shared/references/subagent-boundaries.md`, especially that the subagent must cite files/commands/evidence and must not make final completion, readiness, security, or production claims on behalf of the orchestrator
    - The full plan file path (for overall context)
    - The specific unit's Goal, Files, Approach, Execution note, Patterns, Test scenarios, and Verification
    - Any resolved deferred questions relevant to that unit

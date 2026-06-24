@@ -5,6 +5,13 @@ prototype, browser, and readiness evidence claims. Apply it whenever a skill
 plans, executes, reviews, dogfoods, or reports tests for behavior that could be
 fixture-backed, replay-backed, mocked, simulated, live, or production-like.
 
+When the result supports a material readiness or completion claim, also apply
+`./evidence-claim-integrity-guard.md`. Evidence class answers "what kind of
+test ran"; claim integrity answers "what exact statement that evidence proves."
+When the claim depends on email, billing, webhooks, queues, trace indexing,
+storage, auth/session state, or other external systems, also apply
+`./external-side-effect-reality-guard.md`.
+
 ## Default posture
 
 Default to truthful live evidence.
@@ -112,3 +119,17 @@ backend did. If the claim depends on a backend call, provider call, scrape,
 email, payment, persistence, or workflow side effect, pair browser observation
 with network, server, database, provider, or trace evidence appropriate to the
 claim.
+
+## Claim integrity receipt
+
+If a reader could infer a stronger result than the evidence supports, include a
+compact claim-integrity receipt:
+
+```text
+Claim: <claim_class>: <specific subject>
+Evidence class: <class from this guard>
+Evidence: <paths, commands, traces, screenshots, logs, provider run IDs, or database proof>
+Proves: <narrow claim actually proven>
+Does not prove: <stronger claims still open>
+Residual risk: <remaining gap or not_applicable>
+```

@@ -9,6 +9,12 @@ description: Commit, push, and open a PR with an adaptive, value-first descripti
 
 **Branch consent guard:** Before creating, renaming, or materializing any branch or worktree, load and follow `../shared/references/git-branch-consent-guard.md`. This skill may recommend a branch, but it must not create one unless the user explicitly approves the exact branch action in the current conversation.
 
+**Quality gate guard:** Before writing PR or shipping language that claims
+readiness, load and follow `../shared/references/ce-quality-gates.md` when the
+diff or upstream plan contains prompt, DB, browser, side-effect, security,
+release, backup, or evidence-sensitive gates. Do not describe deferred,
+blocked, or `not_claimed` gates as passed.
+
 ## Mode
 
 - **Description-only** — user wants *just* a description ("write/draft a PR description", "describe this PR", or pasted a PR URL/number alone). Run Step 4 only; print the result. Apply only if the user asks. If a PR ref was pasted, pass it to Step 4 so Pre-A resolves the right range.

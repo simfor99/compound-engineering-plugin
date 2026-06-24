@@ -65,6 +65,26 @@ persistence, email, payment, or workflow side effect, pair the browser evidence
 with network/server/provider/trace evidence or report the live leg as untested
 or blocked.
 
+## Runtime Prompt Contract Guard
+
+When a browser scenario claims prompt fidelity, model-visible data, structured
+LLM output, provider request behavior, workflow-stage prompt behavior, or live
+LLM/provider readiness, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md`. Browser observation
+alone does not prove rendered prompts, effective provider requests, output
+contract conformance, or downstream handoff survival.
+
+## Supabase/DB Side-Effect Guard
+
+When a browser scenario claims Supabase, Postgres, database, migration, RLS,
+auth/session persistence, storage, queue, trace indexing, durable status,
+admin-log, audit-log, code-redemption, or other persistence behavior, read and
+apply `../shared/references/supabase-database-change-guard.md`. Browser
+observation alone does not prove schema, policy, row/object persistence,
+downstream reload, or target-database readiness. Pair the browser path with
+same-target write-read evidence or report the database leg as `blocked`,
+`deferred`, or `not_claimed`.
+
 Platform-specific hints:
 - In Claude Code, do not use Chrome MCP tools (`mcp__claude-in-chrome__*`).
 - In Codex, prefer `chrome-devtools-axi` for the Chrome-AXI route and direct

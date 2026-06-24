@@ -21,6 +21,13 @@ A requirements-classified finding from feasibility should answer: "would the pro
 
 **When `Document type: plan`:** run the full check below. Shadow path tracing, dependency analysis, migration safety, implementability, and performance feasibility all apply.
 
+If the prompt contains an `Active Supabase/DB guard:` block, apply it directly
+to migration safety, durable persistence, trace/status writes, RLS/access
+policy assumptions, and readiness claims. Treat migration files, generated
+types, API/browser success, trace artifacts, mocks, and replays as partial
+evidence unless the document also names same-target write-read proof or an
+honest `blocked`, `deferred`, or `not_claimed` status.
+
 ## What you check
 
 **"What already exists?"** -- Does the plan acknowledge existing code, services, and infrastructure? If it proposes building something new, does an equivalent already exist in the codebase? Does it assume greenfield when reality is brownfield? This check requires reading the codebase alongside the plan.

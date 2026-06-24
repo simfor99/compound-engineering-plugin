@@ -174,6 +174,16 @@ These prompt assets must not include YAML frontmatter. Model selection, tool con
 
 Each skill directory is a self-contained unit. A SKILL.md file must only reference files within its own directory tree (e.g., `references/`, `assets/`, `scripts/`) using relative paths from the skill root. Never reference files outside the skill directory — whether by relative traversal or absolute path.
 
+Exception: stable guardrails shared by many skills may live under
+`skills/shared/references/*.md` and be referenced as
+`../shared/references/<file>.md` from a skill `SKILL.md`; deeper files use the
+corresponding relative sibling path such as
+`../../shared/references/<file>.md`. The `skills/shared` directory must contain
+its own non-user-invocable `SKILL.md` so converters copy it alongside the
+normal skills. Keep this exception narrow; do not use `shared` for persona
+prompts, large workflow steps, scripts, generated artifacts, or one-off support
+files.
+
 Broken patterns:
 
 - `../other-skill/references/schema.yaml` — relative traversal into a sibling skill
@@ -186,7 +196,9 @@ Why this matters:
 - **Unpredictable install paths:** Plugins installed from the marketplace are cached at versioned paths. Absolute paths that worked in the source repo will not match the installed layout, and the version segment changes on every release.
 - **Converter portability:** The CLI copies each skill directory as an isolated unit when converting to other agent platforms. Cross-directory references break because sibling directories are not included in the copy.
 
-If two skills need the same supporting file, duplicate it into each skill's directory. Prefer small, self-contained reference files over shared dependencies.
+If two skills need the same supporting file and it is not a stable cross-skill
+guardrail, duplicate it into each skill's directory. Prefer small,
+self-contained reference files over shared dependencies.
 
 > **Note (March 2026):** This constraint reflects current Claude Code skill resolution behavior and known path-resolution bugs ([#11011](https://github.com/anthropics/claude-code/issues/11011), [#17741](https://github.com/anthropics/claude-code/issues/17741), [#12541](https://github.com/anthropics/claude-code/issues/12541)). If Anthropic introduces a shared-files mechanism or cross-skill imports in the future, this guidance should be revisited with supporting documentation.
 

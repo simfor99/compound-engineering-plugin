@@ -121,7 +121,8 @@ export async function countSkillDirectories(root: string): Promise<number> {
     if (!entry.isDirectory()) continue
     const skillPath = path.join(root, entry.name, "SKILL.md")
     try {
-      await fs.access(skillPath)
+      const skill = await fs.readFile(skillPath, "utf8")
+      if (/^user-invocable:\s*false\s*$/m.test(skill)) continue
       total += 1
     } catch {
       // Ignore non-skill directories.

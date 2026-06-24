@@ -17,6 +17,24 @@ allowed-tools:
 
 The skill does not mutate the product, the database, or any external system. Its only writes are pulse settings appended to `.compound-engineering/config.local.yaml` (the unified CE local config, gitignored, machine-local) and the report file (`docs/pulse-reports/...`). MCP and other data-source tools are invoked read-only; if a tool offers write modes, do not use them.
 
+## Supabase/DB read-only classification
+
+If the pulse uses Supabase, Postgres, SQL, or any database as a data source,
+read `../shared/references/supabase-database-change-guard.md` for the evidence
+boundary and classify it as:
+
+```text
+Supabase/DB Guard: not_applicable/read_only
+Target environment: read_only_data_source
+Schema/RLS evidence: not_claimed
+External side-effect readiness: not_claimed
+```
+
+This skill may report observed metrics from read-only queries, but it must not
+claim schema, migration, RLS, persistence, write-read, or remote mutation
+readiness. Never use read-write credentials, `service_role` credentials, direct
+remote writes, MCP `apply_migration`, or destructive SQL in Product Pulse.
+
 ## Interaction Method
 
 Default to the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension). Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question.

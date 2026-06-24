@@ -34,19 +34,28 @@ Also use it after changing any of:
 - `/home/simon/.codex/plugins/cache/personal/compound-engineering/3.13.1/AGENTS.md`
 - `/home/simon/plugins/compound-engineering/skills/**`
 - `/home/simon/plugins/compound-engineering/AGENTS.md`
-- `/home/simon/.codex/skills/ce-skill-backup`
+- `/home/simon/plugins/compound-engineering/package.json`
 - CE-specific plugin manifests used by Codex, Claude, AGY or agent marketplaces
+- Native OpenCode and Pi package entrypoints:
+  - `.opencode/**`
+  - `.pi/**`
+- The CE bundle manifest and validator:
+  - `skills/shared/ce-bundle.json`
+  - `src/release/bundleManifest.ts`
+  - the fork's root release-validation hook
 
 ## Process
 
 1. **Preview first**
 
    ```bash
-   python3 ~/.codex/skills/ce-skill-backup/scripts/backup_ce_skill_bundle.py preview
+   python3 /home/simon/plugins/compound-engineering/skills/ce-skill-backup/scripts/backup_ce_skill_bundle.py preview
    ```
 
    Report `remote_status`, `cache_vs_fork`, `action_needed`, concrete
-   changed/missing/stale files, and the suggested commit message.
+   changed/missing/stale files, and the suggested commit message. Also report
+   whether `skills/shared/ce-bundle.json` exists in both the active cache and
+   fork, and whether its cache-vs-fork SHA-256 checksum matches.
 
    If `action_needed=none`, explain that the active cache, local fork and
    remote branch are already aligned enough for backup purposes. Stop there.
@@ -65,27 +74,46 @@ Also use it after changing any of:
 2. **After approval, sync only when needed**
 
    ```bash
-   python3 ~/.codex/skills/ce-skill-backup/scripts/backup_ce_skill_bundle.py apply
+   python3 /home/simon/plugins/compound-engineering/skills/ce-skill-backup/scripts/backup_ce_skill_bundle.py apply
    ```
 
    This copies the active personal plugin cache's CE runtime files into the
-   fork. Scope is intentionally narrow: `skills/`, `AGENTS.md`, and relevant
-   plugin/marketplace manifests. It does not rewrite unrelated upstream docs,
+   fork. Scope is intentionally narrow: `skills/`, `AGENTS.md`, `package.json`,
+   native OpenCode/Pi entrypoints, relevant plugin/marketplace manifests, and
+   release validator files. It does not rewrite unrelated upstream docs,
    release configuration, package locks, or app source.
 
 3. **Validate after apply or before commit**
 
    ```bash
-   python3 ~/.codex/skills/ce-skill-backup/scripts/backup_ce_skill_bundle.py status
+   python3 /home/simon/plugins/compound-engineering/skills/ce-skill-backup/scripts/backup_ce_skill_bundle.py status
    ```
 
    Confirm `validation=ok`. Then run repository validation from the fork when
    available:
 
    ```bash
+   bun run release:validate
    claude plugin validate .
    git diff --check
    ```
+
+   `bun run release:validate` is required when the fork has a Bun toolchain,
+   because it runs the CE bundle manifest validator
+   (`src/release/bundleManifest.ts`) against `skills/shared/ce-bundle.json`.
+   If Bun is unavailable, state that clearly and do not claim bundle-manifest
+   validation passed.
+
+   After validation, prove cache/fork parity by reading back the manifest from
+   both locations and comparing checksums:
+
+   ```bash
+   sha256sum \
+     /home/simon/.codex/plugins/cache/personal/compound-engineering/3.13.1/skills/shared/ce-bundle.json \
+     /home/simon/plugins/compound-engineering/skills/shared/ce-bundle.json
+   ```
+
+   The two hashes must match before the backup can be called aligned.
 
    Also run a secret scan if available:
 
@@ -114,6 +142,9 @@ Also use it after changing any of:
 ## Resources
 
 - Script: `scripts/backup_ce_skill_bundle.py`
+- Bundle manifest: `skills/shared/ce-bundle.json`
+- Bundle validator: `src/release/bundleManifest.ts`
+- Release validator hook: the fork's root release-validation hook
 - Active cache: `/home/simon/.codex/plugins/cache/personal/compound-engineering/3.13.1`
 - Destination fork: `/home/simon/plugins/compound-engineering`
 
@@ -125,12 +156,23 @@ Also use it after changing any of:
   apply, because that is what Codex actually loads at runtime.
 - `ce-skill-backup` is self-referential and must exist under
   `skills/ce-skill-backup/` in the CE plugin source and active cache.
-- Back up only CE runtime/agent behavior surfaces: `skills/`, `AGENTS.md`, and
-  plugin/marketplace manifests.
+- The global duplicate under `/home/simon/.codex/skills/ce-skill-backup` is
+  intentionally absent. If it reappears, remove it so the skill registry exposes
+  only the plugin-provided `compound-engineering:ce-skill-backup` entry.
+- Back up only CE runtime/agent behavior surfaces: `skills/`, `AGENTS.md`,
+  `package.json`, native OpenCode/Pi entrypoints, plugin/marketplace manifests,
+  and release validator files. The bundle manifest under
+  `skills/shared/ce-bundle.json` is part of this runtime surface.
 - Exclude `.git`, `node_modules`, caches, `__pycache__`, `.pytest_cache`,
   `.DS_Store`, and `.pyc`.
 - Preview must distinguish cache-vs-fork drift from local fork changes that
   only need commit/push.
+- Preview/status must distinguish ordinary file drift from bundle-manifest
+  drift. Missing or mismatched `skills/shared/ce-bundle.json` is blocking for a
+  "backup aligned" claim.
+- The post-apply validation receipt must include:
+  `bun run release:validate`, manifest checksum readback from active cache and
+  fork, and `git diff --check`.
 - Ask only one approval question for apply+commit+push when backup is needed.
 - Never broad-stage the fork. Stage only paths reported by `git status` inside
   the backup scope.

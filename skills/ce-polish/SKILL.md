@@ -54,6 +54,28 @@ check is `static_mock` or `artifact_replay` instead of live. Do not call a
 polish finding live-tested unless the relevant backend/provider/workflow leg ran
 for real and the evidence supports that class.
 
+## Runtime Prompt Contract Guard
+
+When polishing a feature whose UX depends on product/runtime prompts, System
+Prompt, User Prompt, output JSON, structured LLM output, provider requests,
+rendered prompts, model-visible data, prompt files, workflow stages, or
+prompt/runtime parity, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md`. UI polish may
+improve copy and interaction, but it must not silently change accepted prompt
+contracts or claim provider/runtime proof from browser evidence alone.
+
+## Supabase/DB Side-Effect Guard
+
+When polishing a feature whose UX depends on Supabase, Postgres, database
+tables, migrations, RLS, auth/session persistence, storage, queues, trace
+indexing, durable status writes, admin logs, audit logs, code-redemption
+persistence, or any other durable database side effect, read and apply
+`../shared/references/supabase-database-change-guard.md`. UI polish may improve
+copy and interaction, but it must not claim persistence, schema, policy, or
+target-database readiness from browser evidence alone. Use same-target
+write-read evidence or report the DB leg as `blocked`, `deferred`, or
+`not_claimed`.
+
 ## Phase 0: Get on the right branch
 
 Before any checkout that may create or materialize a local branch, load and

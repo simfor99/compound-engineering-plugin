@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { execFileSync } from "node:child_process"
 import path from "path"
+import { validateCeBundleManifest } from "../../src/release/bundleManifest"
 import { validateReleasePleaseConfig } from "../../src/release/config"
 import { getCompoundEngineeringCounts, syncReleaseMetadata } from "../../src/release/metadata"
 import { readJson } from "../../src/utils/files"
@@ -44,8 +45,14 @@ const result = await syncReleaseMetadata({
 })
 const changed = result.updates.filter((update) => update.changed)
 const metadataErrors = result.errors
+const bundleManifestErrors = await validateCeBundleManifest(process.cwd())
 
-if (configErrors.length === 0 && changed.length === 0 && metadataErrors.length === 0) {
+if (
+  configErrors.length === 0 &&
+  changed.length === 0 &&
+  metadataErrors.length === 0 &&
+  bundleManifestErrors.length === 0
+) {
   console.log(
     `Release metadata is in sync. compound-engineering currently has ${counts.agents} agents, ${counts.skills} skills, and ${counts.mcpServers} MCP server${counts.mcpServers === 1 ? "" : "s"}.`,
   )
@@ -62,6 +69,13 @@ if (configErrors.length > 0) {
 if (metadataErrors.length > 0) {
   console.error("Release metadata structural errors detected:")
   for (const error of metadataErrors) {
+    console.error(`- ${error}`)
+  }
+}
+
+if (bundleManifestErrors.length > 0) {
+  console.error("CE bundle manifest errors detected:")
+  for (const error of bundleManifestErrors) {
     console.error(`- ${error}`)
   }
 }

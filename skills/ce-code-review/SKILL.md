@@ -138,6 +138,59 @@ The following paths are compound-engineering pipeline artifacts and must never b
 
 If a reviewer flags any file in these directories for cleanup or removal, discard that finding during synthesis.
 
+## Runtime Prompt Contract Guard
+
+When the reviewed diff touches product/runtime prompt files, prompt contracts,
+System Prompt, User Prompt, output JSON, structured LLM output, provider
+requests, rendered prompts, model-visible data, workflow stages, validators,
+parsers, handoffs, traces, or prompt-loading/runtime transport, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md`. The review must
+check whether accepted prompt contracts survive into productive prompt files,
+rendered System/User Prompt, effective provider request, parsed output,
+validators, downstream handoffs/consumers, and trace/review evidence. Missing
+repo profile, missing authoritative contract, paraphrased contract text, or
+unproven provider-request transport is an actionable finding, not a style note.
+
+## Supabase Database Change Guard
+
+When the reviewed diff touches Supabase, Postgres, SQL, database tables,
+columns, indexes, views, triggers, functions, schemas, migrations, RLS,
+policies, `auth.uid()`, auth/session persistence, storage buckets or policies,
+queues, cron, realtime, vectors, `service_role`, backfills, trace indexing,
+durable status writes, admin logs, audit logs, code-redemption persistence, or
+production/staging database state,
+read and apply `../shared/references/supabase-database-change-guard.md`. The
+review must check for target environment identity, migration governance,
+affected objects, RLS/access stance, deploy-window and rollback risk,
+same-target write-read evidence, cleanup/retention, downstream reload/reference
+proof, or an accepted deferral. Treat local migration files, generated types,
+API/browser success, trace artifacts, and unit tests as partial evidence only.
+
+## OpenSpec-transfer review guards
+
+When reviewed changes or the provided plan make material readiness, workflow,
+persistence, trace, provider, browser, or external-system claims, read and
+apply `../shared/references/evidence-claim-integrity-guard.md`. The review must
+flag claims that exceed the evidence class.
+
+When reviewed changes involve email, billing, payments, webhooks, queues,
+storage, auth/session state, durable workflow status, trace visibility, admin
+logs, or audit logs, read and apply
+`../shared/references/external-side-effect-reality-guard.md`. UI/API success is
+partial evidence only unless the external write and readback/visibility leg are
+proved or explicitly not claimed.
+
+When a plan or diff carries quality gates, P0/P1 source commitments, or broad
+migration coverage, read and apply `../shared/references/ce-quality-gates.md`
+and `../shared/references/source-coverage-matrix.md`. Missing gates, missing
+source coverage, and deferred gates represented as passed are actionable
+findings.
+
+When the review uses subagents, apply
+`../shared/references/subagent-boundaries.md`: persona outputs are evidence, not
+final truth; synthesis owns the final verdict and must not promote uncited
+subagent claims.
+
 ## How to Run
 
 ### Stage 1: Determine scope
@@ -302,9 +355,18 @@ Skip it for standalone branch reviews with no associated PR, and skip it for PRs
 
 Stack-specific personas are additive when runtime behavior warrants them. A Hotwire UI change may warrant `julik-frontend-races`; a TypeScript API diff may warrant `api-contract` and `reliability`.
 
-**`data-migration` spawn gate.** Select `data-migration-reviewer` only when the diff includes at least one migration or schema artifact: `db/migrate/*`, `db/schema.rb`, `db/structure.sql`, Alembic/Flyway/Liquibase migration paths, or explicit backfill/data-transform scripts (rake tasks, one-off data migration classes). **Do not spawn** for model-only changes, query-only refactors, serializers/controllers that reference columns without a migration or schema dump in the diff, or migration tests alone.
+**`data-migration` spawn gate.** Select `data-migration-reviewer` when the diff includes either:
 
-For `deployment-verification-agent`, use the same migration-artifact gate when the change is risky (destructive DDL, backfills, NOT NULL without default, column renames/drops).
+- at least one migration or schema artifact: `db/migrate/*`, `db/schema.rb`, `db/structure.sql`, `supabase/migrations/*`, `supabase/seed.sql`, `supabase/config.toml`, Alembic/Flyway/Liquibase migration paths, explicit RLS/policy/auth/storage schema artifacts, or explicit backfill/data-transform scripts (rake tasks, one-off data migration classes); or
+- a durable database side effect that the Supabase/DB guard would treat as persistence-relevant: durable workflow/status writes, trace indexing, admin review persistence, audit logs, code-redemption logs, abuse/security logs, RLS/Auth/Storage policy behavior, or user-scoped database reads/writes whose correctness depends on same-target state or access policy.
+
+Do not spawn for model-only changes, query-only refactors, serializers/controllers that reference columns without a migration/schema artifact or durable side-effect change in the diff, or migration tests alone.
+
+For `deployment-verification-agent`, use the same data-migration gate when the
+change is risky for external DB state: destructive DDL, backfills, NOT NULL
+without default, column renames/drops, RLS/Auth/Storage policy changes,
+`service_role` usage in user-scoped flows, durable workflow/status/indexing
+writes, or remote Supabase state that needs a go/no-go verification checklist.
 
 Announce the team before spawning:
 

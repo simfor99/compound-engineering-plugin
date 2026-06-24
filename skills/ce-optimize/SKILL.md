@@ -19,6 +19,37 @@ an `optimize/<spec-name>` branch and experiment worktrees, but must not create
 them unless the user explicitly approves the exact branch/worktree shape in the
 current conversation.
 
+When dispatching parallel experiments or judge agents, read and apply
+`../shared/references/subagent-boundaries.md`. Experiment agents produce
+candidates and measurements; the main optimizer owns the final promotion
+decision, evidence interpretation, and write-back claim.
+
+When the optimization target is a product/runtime prompt, prompt quality,
+System Prompt, User Prompt, output JSON, structured LLM output, provider
+request, model-visible behavior, workflow stage, or prompt contract that may be
+promoted into runtime, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md` before creating the
+optimization spec. Experiments may propose candidates, but only accepted
+contracts may be written back, and write-back must preserve the repo prompt
+profile and runtime/provider-request evidence chain.
+
+When the optimization target touches Supabase, Postgres, database tables,
+migrations, RLS, auth/session persistence, storage, queues, trace indexing,
+durable status writes, admin logs, audit logs, code-redemption persistence, or
+database-backed metrics, read and apply
+`../shared/references/supabase-database-change-guard.md` before creating the
+optimization spec. A metric improvement, generated type, API/browser pass,
+trace artifact, mock, or replay does not prove target-database readiness.
+Database readiness needs same-target write-read evidence; deferrals are only
+`blocked`, `deferred`, or `not_claimed`.
+
+When optimization results support readiness, provider, workflow, persistence,
+trace, browser, or external-system claims, read and apply
+`../shared/references/evidence-claim-integrity-guard.md` and
+`../shared/references/ce-quality-gates.md`. Prompt A/B promotion should be
+reported as a measured candidate decision, not as runtime readiness unless the
+runtime/provider and downstream evidence legs ran.
+
 ## Input
 
 <optimization_input> #$ARGUMENTS </optimization_input>

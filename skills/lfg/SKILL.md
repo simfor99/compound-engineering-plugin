@@ -22,6 +22,47 @@ not consent to replace live evidence with mock/replay evidence. If a cheaper
 evidence mode is used, the final pipeline report must say what it proves and
 what it does not prove.
 
+Before any downstream step makes readiness, workflow, persistence, trace,
+provider, browser, or external-system claims, load and follow
+`../shared/references/evidence-claim-integrity-guard.md`. Hands-off execution
+is not consent to overstate evidence; final pipeline claims must name what is
+proven, what is not proven, and the residual risk.
+
+Before any downstream step plans, implements, reviews, tests, or reports work
+involving product/runtime prompts, System Prompt, User Prompt, output JSON,
+structured LLM output, provider requests, rendered prompts, model-visible data,
+workflow stages, prompt files, or concrete prompt contracts, load and follow
+`../shared/references/ce-runtime-prompt-contract-guard.md`. Hands-off execution
+is not consent to ignore a missing or stale prompt-contract profile. The
+pipeline must stop for the guard's profile/setup/refresh decision before
+prompt-contract-bearing work proceeds beyond read-only discovery.
+
+Before any downstream step plans, implements, reviews, tests, or reports work
+involving Supabase, Postgres, SQL, database tables, columns, indexes, views,
+triggers, functions, schemas, migrations, RLS, policies, `auth.uid()`,
+auth/session persistence, storage buckets or policies, queues, cron, realtime,
+vectors, `service_role`, backfills, trace indexing, durable status writes,
+admin logs, audit logs, code-redemption persistence, or production/staging
+database state, load and follow
+`../shared/references/supabase-database-change-guard.md`. Hands-off execution
+is not consent for remote database mutations. The pipeline must stop or record
+an accepted deferral when same-target write-read evidence is required but not
+available.
+
+Before any downstream step depends on email, billing, payments, webhooks,
+queues, storage, auth/session state, durable workflow status, trace visibility,
+admin logs, or audit logs, load and follow
+`../shared/references/external-side-effect-reality-guard.md`. UI, API, trace,
+or local-job success cannot be reported as external delivery/readback unless
+that leg actually ran or is explicitly not claimed.
+
+Before declaring DONE, load and follow
+`../shared/references/ce-completion-verification.md` and
+`../shared/references/ce-quality-gates.md`. The pipeline must verify the plan,
+required artifacts, gates, deferrals, tests, and evidence receipts before
+commit/PR/readiness language. If subagents contributed, apply
+`../shared/references/subagent-boundaries.md` during synthesis.
+
 1. Invoke the `ce-plan` skill with `$ARGUMENTS`.
 
    GATE: STOP. If ce-plan reported the task is non-software and cannot be processed in pipeline mode, stop the pipeline and inform the user that LFG requires software tasks. Otherwise, verify that the `ce-plan` workflow produced a plan file in `docs/plans/`. If no plan file was created, invoke `ce-plan` again with `$ARGUMENTS`. Do NOT proceed to step 2 until a written plan exists. **Record the plan file path** — it will be passed to ce-code-review in step 4.

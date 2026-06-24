@@ -34,6 +34,53 @@ expectation for "test this" is live evidence unless a weaker mode is made
 explicit. Requirements documents must label mock/replay/prototype evidence as
 such and state what it proves and what it does not prove.
 
+## Case Matrix Coverage Guard
+
+When a brainstorm discovers or discusses a case matrix, UX matrix, acceptance
+examples, state machine, decision matrix, LLM/provider classification,
+scraper-driven behavior, workflow gates, auth/session gates, persistence, or
+production readiness, read and apply
+`../shared/references/case-matrix-coverage-guard.md`. The final requirements
+must preserve the discovered cases as a stable acceptance matrix when those
+cases drive product behavior or readiness. For each readiness-bearing case,
+capture the expected user-visible outcome, expected machine outcome, evidence
+class, and whether live verification is required before readiness. Do not let a
+representative smoke subset stand in for full matrix readiness unless the
+requirements explicitly mark the remaining rows `deferred` or `not_claimed`.
+
+## Runtime Prompt Contract Guard
+
+When the brainstorm discusses product/runtime prompts, System Prompt, User
+Prompt, output JSON, structured LLM output, provider requests, workflow stages,
+or prompt contracts that a future builder must preserve, read and apply
+`../shared/references/ce-runtime-prompt-contract-guard.md`. Capture whether the
+prompt material is `proposed_shape` or `target_contract`, and do not rely on
+chat memory when the guard requires a repo prompt contract profile or a durable
+target artifact.
+
+## Supabase Database Change Guard
+
+When the brainstorm discusses Supabase, Postgres, SQL, database tables,
+columns, indexes, views, triggers, functions, schemas, migrations, RLS,
+policies, `auth.uid()`, auth/session persistence, storage buckets or policies,
+queues, cron, realtime, vectors, `service_role`, backfills, trace indexing,
+durable status writes, admin logs, audit logs, code-redemption persistence, or
+production/staging database state, read and apply
+`../shared/references/supabase-database-change-guard.md`. Requirements must not
+imply database readiness from a mock, API response, migration file, or UI flow;
+record whether persistence is in scope now, explicitly deferred, or requires a
+later same-target write-read evidence gate.
+
+## Decision and Assumption Ledger
+
+When the brainstorm contains material product, architecture, governance, risk,
+security, cost, release, data-flow, prompt/runtime, evidence, or scope
+uncertainty, read and apply
+`../shared/references/decision-assumption-ledger.md`. Requirements documents
+must not turn unresolved assumptions into settled decisions. Record whether each
+material unknown is `repo_evidence_pending`, `carry_visible`, `clarify_first`,
+`user_decision`, or `deferred_decision`.
+
 ## Interaction Rules
 
 These rules apply to every brainstorm, including the universal (non-software) flow routed to `references/universal-brainstorming.md`.

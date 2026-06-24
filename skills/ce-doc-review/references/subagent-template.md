@@ -157,6 +157,8 @@ Document type: {document_type}
 Document path: {document_path}
 Origin: {origin_path}
 
+{active_guard_brief}
+
 {decision_primer}
 
 Document content:
@@ -166,6 +168,10 @@ Document content:
 <context-slots-rules>
 - `Document type:` is the orchestrator's authoritative classification (`requirements` or `plan`). Trust it; do not re-classify by inspecting content shape. The orchestrator already used frontmatter and section structure to decide.
 - `Origin:` carries the value of the document's `origin:` frontmatter field when one is present, or the literal token `none` when no origin was declared. This is how the orchestrator surfaces upstream provenance to personas that adapt on origin (e.g., suppressing premise-challenge techniques on origin'd plans). Read this line directly — do not parse the document's frontmatter yourself for this signal.
+- `Active guard brief:` carries cross-cutting guardrails loaded by the
+  orchestrator, such as the Supabase/DB guard or runtime prompt-contract guard.
+  Apply it as review context. If it is `none`, do not invent guard-specific
+  requirements.
 </context-slots-rules>
 
 <decision-primer-rules>

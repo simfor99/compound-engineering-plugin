@@ -31,7 +31,7 @@ Spawned when the orchestrator identifies relevant patterns in the diff. The orch
 | `security` | `security-reviewer` | Auth middleware, public endpoints, user input handling, permission checks, secrets management |
 | `performance` | `performance-reviewer` | Database queries, ORM calls, loop-heavy data transforms, caching layers, async/concurrent code |
 | `api-contract` | `api-contract-reviewer` | Route definitions, serializer/interface changes, event schemas, exported type signatures, API versioning |
-| `data-migration` | `data-migration-reviewer` | Migration files, schema dumps (`db/schema.rb`, `structure.sql`), backfill scripts, data transformations — **not** model/query-only changes without migration artifacts |
+| `data-migration` | `data-migration-reviewer` | Migration files, schema dumps (`db/schema.rb`, `structure.sql`), Supabase migration/config/seed artifacts (`supabase/migrations/*`, `supabase/seed.sql`, `supabase/config.toml`), explicit RLS/policy/auth/storage schema artifacts, backfill scripts, data transformations, durable workflow/status writes, trace indexing, admin/audit/code-redemption/abuse logs, or user-scoped DB reads/writes whose correctness depends on same-target state or policy — **not** model/query-only changes without migration artifacts or durable side effects |
 | `reliability` | `reliability-reviewer` | Error handling, retry logic, circuit breakers, timeouts, background jobs, async handlers, health checks |
 | `adversarial` | `adversarial-reviewer` | Diff has >=50 changed non-test, non-generated, non-lockfile lines, OR touches auth, payments, data mutations, external API integrations, or other high-risk domains |
 | `previous-comments` | `previous-comments-reviewer` | **PR-only AND comment-gated.** Reviewing a PR that has existing review comments or review threads from prior review rounds. Skip entirely when no PR metadata was gathered in Stage 1, OR when Stage 1's `hasPriorComments` flag is false (no `reviews` and no `comments` on the PR). |
@@ -47,7 +47,13 @@ These reviewers cover runtime behavior the always-on personas do not specialize 
 
 ## CE Conditional Local Prompt Assets (migration-specific)
 
-Use `deployment-verification-agent` when the migration-artifact gate applies **and** the change is risky (destructive DDL, backfills, NOT NULL without default, column renames/drops). Schema drift and migration safety live in the `data-migration` persona — not a separate typed agent.
+Use `deployment-verification-agent` when the data-migration gate applies **and**
+the change is risky for external DB state: destructive DDL, backfills, NOT NULL
+without default, column renames/drops, RLS/Auth/Storage policy changes,
+`service_role` usage in user-scoped flows, durable workflow/status/indexing
+writes, or remote Supabase state that needs a go/no-go verification checklist.
+Schema drift and migration safety live in the `data-migration` persona — not a
+separate typed agent.
 
 | Prompt asset | Focus |
 |-------|-------|
@@ -58,6 +64,6 @@ Use `deployment-verification-agent` when the migration-artifact gate applies **a
 1. **Always spawn all 4 always-on personas** plus the 2 CE always-on local prompt assets.
 2. **For each cross-cutting conditional persona**, the orchestrator reads the diff and decides whether the persona's domain is relevant. This is a judgment call, not a keyword match.
 3. **For each stack-specific conditional persona**, use file types and changed patterns as a starting point, then decide whether the diff actually introduces meaningful work for that reviewer. Do not spawn language-specific reviewers just because one config or generated file happens to match the extension.
-4. **For `data-migration`**, spawn only when the diff includes migration or schema artifacts (`db/migrate/*`, `db/schema.rb`, `db/structure.sql`, Alembic/Flyway/Liquibase paths, or explicit backfill/data-transform scripts). Do **not** spawn for model-only or query-only changes without those files.
+4. **For `data-migration`**, spawn when the diff includes migration or schema artifacts (`db/migrate/*`, `db/schema.rb`, `db/structure.sql`, `supabase/migrations/*`, `supabase/seed.sql`, `supabase/config.toml`, Alembic/Flyway/Liquibase paths, explicit RLS/policy/auth/storage schema artifacts, or explicit backfill/data-transform scripts), or durable DB side effects such as workflow/status writes, trace indexing, admin/audit/code-redemption/abuse logs, or user-scoped DB reads/writes whose correctness depends on same-target state or policy. Do **not** spawn for model-only or query-only changes without those files or durable side effects.
 5. **For CE conditional prompt assets**, use `deployment-verification-agent` when the migration-artifact gate applies and the change is risky (see above).
 6. **Announce the team** before spawning with a one-line justification per conditional reviewer selected.

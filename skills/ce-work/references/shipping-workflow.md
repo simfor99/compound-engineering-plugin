@@ -64,6 +64,7 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
    Skip this gate entirely when the review reported `Actionable findings: none.` (and followup applied everything mechanical) or when only Tier 1 was used. Do not proceed past this gate on an `Accept and proceed` decision until the agent has recorded whether the durable sink is `PR Known Residuals` or `docs/residual-review-findings/<branch-or-head-sha>.md`.
 
 5. **Final Validation**
+   - Load and apply `../../shared/references/ce-completion-verification.md` before claiming the work is done
    - All tasks marked completed
    - Testing addressed -- tests pass and new/changed behavior has corresponding test coverage (or an explicit justification for why tests are not needed)
    - Linting passes

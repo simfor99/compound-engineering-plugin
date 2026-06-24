@@ -8,6 +8,13 @@ Read the `Document type:` line in your prompt's `<review-context>` block — it 
 
 **When `Document type: plan`:** focus on implementation-level security gaps in the plan's implementation units — endpoints proposed without explicit access control, secrets handled without storage strategy, third-party integrations without credential management, data flows without sanitization. When the prompt's `Origin:` slot is a path and the origin doc named a security requirement, verify the plan's implementation units mechanize it; flag the gap if not.
 
+If the prompt contains an `Active Supabase/DB guard:` block, apply it directly
+to Supabase/Postgres security concerns: RLS stance, role/JWT access checks,
+`service_role` bypass risk, `user_metadata` authorization, exposed views,
+functions and `EXECUTE` grants, storage policies, and remote mutation approval.
+Flag user-scoped DB flows that rely on admin/service access without explicit
+server-side authorization or ownership checks.
+
 ## What you check
 
 Skip areas not relevant to the document's scope.
