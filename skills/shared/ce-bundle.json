@@ -65,7 +65,7 @@
     },
     {
       "path": "skills/ce-brainstorm/SKILL.md",
-      "sha256": "a13009488692ded9d85b9105ec235061d975cfaad6f77d471dadc4b5bc1f6300"
+      "sha256": "e27303d0716dfa7ad9676d014189d0c122ba27e15f8f5819d02f8262eaac5082"
     },
     {
       "path": "skills/ce-brainstorm/references/agents/slack-researcher.md",
@@ -505,7 +505,7 @@
     },
     {
       "path": "skills/ce-plan/SKILL.md",
-      "sha256": "ae288f0db35a751a72e5410f9c06f16cfcbd6ab1455eac9d8a34d95680f26527"
+      "sha256": "a76268b38d76af5e5c5ec451c3b00b712af75d5aa030fc9d39af7e9b0efeda69"
     },
     {
       "path": "skills/ce-plan/references/agents/agent-native-planning-strategist.md",
@@ -898,6 +898,10 @@
     {
       "path": "skills/shared/references/decision-assumption-ledger.md",
       "sha256": "ec8437d0affbe699e5d725f9ad436a5bffc231c2774679969907a746664d0ab4"
+    },
+    {
+      "path": "skills/shared/references/elons-principles-order-of-operations-guard.md",
+      "sha256": "9e506109dca0d85db529c16ad09c4b0b1631db0caf2dd3a80e139588b56d8db2"
     },
     {
       "path": "skills/shared/references/evidence-authenticity-guard.md",

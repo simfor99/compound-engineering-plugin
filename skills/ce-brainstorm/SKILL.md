@@ -25,6 +25,17 @@ This skill does not implement code. It explores, clarifies, and documents decisi
 5. **Right-size the artifact** - Simple work gets a compact requirements document or brief alignment. Larger work gets a fuller document. Do not add ceremony that does not help planning.
 6. **Apply YAGNI to carrying cost, not coding effort** - Prefer the simplest approach that delivers meaningful value. Avoid speculative complexity and hypothetical future-proofing, but low-cost polish or delight is worth including when its ongoing cost is small and easy to maintain.
 
+## Elons Principles Guard
+
+When the brainstorm contains ambiguous or expandable requirements, a new
+workflow, process, pipeline, stage, agent, prompt chain, optimization,
+acceleration, or automation, read and apply
+`../shared/references/elons-principles-order-of-operations-guard.md`. Use it as
+a requirements and scope-subtraction guard before approach exploration and
+again before writing final requirements: check the requirement, surface what
+can be deleted or narrowed, simplify before speed, and treat automation as the
+last step rather than the default answer.
+
 ## Evidence Authenticity Guard
 
 When the brainstorm discusses prototypes, tests, browser checks, live services,

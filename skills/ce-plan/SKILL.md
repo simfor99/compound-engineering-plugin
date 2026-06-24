@@ -41,6 +41,17 @@ If the input is present but unclear or underspecified, do not abandon — ask on
 7. **Carry execution posture lightly when it matters** - If the request, origin document, or repo context clearly implies test-first, characterization-first, or another non-default execution posture, reflect that in the plan as a lightweight signal. Do not turn the plan into step-by-step execution choreography.
 8. **Honor user-named resources** - When the user names a specific resource — a CLI, MCP server, URL, file, doc link, or prior artifact — treat it as authoritative input, not a suggestion. Discover it if unknown (`command -v`, fetch, read) before assuming it's unavailable. Use it in place of generic alternatives. If it fails or doesn't exist, say so explicitly rather than silently substituting.
 
+#### Elons Principles Guard
+
+When planned work includes expandable scope, a new workflow, process, pipeline,
+stage, agent, prompt chain, optimization, acceleration, automation,
+parallelization, or reusable machinery, read and apply
+`../shared/references/elons-principles-order-of-operations-guard.md`. Use it as
+an implementation-subtraction guard before finalizing implementation units and
+again during plan verification: keep requirements traceable, delete or defer
+unneeded units and process steps, simplify the kept path before speed, and plan
+automation only when the remaining process is understood and repeatable.
+
 #### Browser Runtime Routing Guard
 
 When the planned work includes user-visible UI, browser automation, auth/session
