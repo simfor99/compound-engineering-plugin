@@ -356,6 +356,10 @@
       "sha256": "f3ae3cd744dab956f519d48a7a87e43f9ec04b97a8071d4ee4ed5b411e44a801"
     },
     {
+      "path": "skills/ce-doc-review/references/personas/evidence-coverage-auditor.md",
+      "sha256": "895440b491547e113bf42ad281938554bc93aa284584c0665340ef484f5184c4"
+    },
+    {
       "path": "skills/ce-doc-review/references/personas/feasibility-reviewer.md",
       "sha256": "76d4fe380fc600104cb40a2d0c1016bdea1291a66f4ed58b14cc99571824fed9"
     },
@@ -870,6 +874,10 @@
     {
       "path": "skills/shared/docs/INDEX.md",
       "sha256": "f44e7fb862a851b9326c374644028bea918b30da1cefd4c1ca8ff26e7fdddb2e"
+    },
+    {
+      "path": "skills/shared/references/case-matrix-coverage-guard.md",
+      "sha256": "3a4d9a9c1d1a41fb168483c9ed2d791574a1442afd1a3965324504fef42dd22b"
     },
     {
       "path": "skills/shared/references/ce-completion-verification.md",
