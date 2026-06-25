@@ -69,6 +69,16 @@ prompt material is `proposed_shape` or `target_contract`, and do not rely on
 chat memory when the guard requires a repo prompt contract profile or a durable
 target artifact.
 
+If the brainstorm defines a prompt improvement, prompt-contract change, schema
+projection, provider-output behavior, or stage output that may need evidence
+before implementation, add a **CE Prompt Improver handoff** to the requirements:
+target behavior, source labels, must-survive facts, must-reject behaviors,
+case/acceptance matrix, evidence class, intended downstream consumer, allowed
+provider profile if known, and whether autonomous Prompt Lab iteration is
+allowed. `ce-brainstorm` does not run A/B tests; it defines what success means
+so `ce-prompt-improver` can run manual or autonomous rounds without inventing
+the goal.
+
 ## Supabase Database Change Guard
 
 When the brainstorm discusses Supabase, Postgres, SQL, database tables,

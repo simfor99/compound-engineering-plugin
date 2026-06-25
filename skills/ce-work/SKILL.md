@@ -35,6 +35,7 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - If the prompt mentions a case matrix, UX matrix, acceptance examples, state machine, decision matrix, LLM/provider classification, scraper-driven behavior, workflow gates, auth/session gates, persistence, or production readiness, read and apply `../shared/references/case-matrix-coverage-guard.md` before routing.
    - If the prompt includes material readiness or completion claims, read and apply `../shared/references/evidence-claim-integrity-guard.md` before routing.
    - If the prompt mentions product/runtime prompts, System Prompt, User Prompt, output JSON, structured LLM output, provider requests, rendered prompts, workflow stages, model-visible data, prompt files, or concrete prompt contracts, read and apply `../shared/references/ce-runtime-prompt-contract-guard.md` before routing.
+   - If the prompt asks to improve, compare, optimize, or prove a prompt/schema/provider-output behavior and no accepted CE Prompt Improver promotion packet is supplied, route through `ce-prompt-improver` first. For autonomous requests, run it as a Prompt Lab gate with real provider or accepted replay evidence, not static mocks.
    - If the prompt mentions Supabase, Postgres, SQL, database tables, columns, indexes, views, triggers, functions, schemas, migrations, RLS, policies, `auth.uid()`, auth/session persistence, storage buckets or policies, queues, cron, realtime, vectors, `service_role`, backfills, trace indexing, durable status writes, admin logs, audit logs, code-redemption persistence, or production/staging database state, read and apply `../shared/references/supabase-database-change-guard.md` before routing.
    - If the prompt mentions email, billing, payments, subscriptions, invoices, webhooks, queues, storage, auth/session state, durable workflow status, trace visibility, admin logs, or audit logs, read and apply `../shared/references/external-side-effect-reality-guard.md` before routing.
 
@@ -56,7 +57,9 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - If the plan or work mentions tests, prototypes, browser checks, live services, LLM/provider calls, scraping, workflows, readiness, or validation, read and apply `../shared/references/evidence-authenticity-guard.md` before creating tasks. Default to live evidence for user-requested tests unless a weaker mock/replay/prototype mode was explicitly surfaced and accepted.
    - If the plan or work mentions a case matrix, UX matrix, acceptance examples, state machine, decision matrix, LLM/provider classification, scraper-driven behavior, workflow gates, auth/session gates, persistence, or production readiness, read and apply `../shared/references/case-matrix-coverage-guard.md` before creating tasks. Before implementing, compare origin cases against planned verification. If readiness depends on missing matrix rows, add explicit test tasks or report the gap before claiming completion.
    - If the plan or work contains readiness, workflow, persistence, trace, provider, browser, or external-system claims, read and apply `../shared/references/evidence-claim-integrity-guard.md` before creating tasks.
+   - If the input is a plan document, read and apply `../shared/references/plan-completion-gate-ledger.md` before creating tasks. Build the Plan Completion Gate Ledger from the plan's requirements, implementation units, verification section, test scenarios, explicit gates, scope boundaries, and deferred items. This ledger is the completion source of truth; task completion or one strong evidence slice cannot replace it.
    - If the plan or work mentions product/runtime prompts, System Prompt, User Prompt, output JSON, structured LLM output, provider requests, rendered prompts, workflow stages, model-visible data, prompt files, or concrete prompt contracts, read and apply `../shared/references/ce-runtime-prompt-contract-guard.md` before creating tasks. Do not implement prompt-contract-bearing work from chat memory when the authoritative contract, repo prompt profile, or runtime transport path is missing.
+   - If the plan includes a CE Prompt Improver gate, run that gate before editing production prompt/schema/runtime files unless the plan links an accepted promotion packet. If the plan lacks such a gate but the work materially changes prompt behavior whose correctness depends on LLM/provider output, invoke `ce-prompt-improver` in `pipeline_gate` or `autonomous_candidate_search` mode before production wiring. A failed or inconclusive gate blocks readiness claims unless Simon explicitly accepts the risk.
    - If the plan or work mentions Supabase, Postgres, SQL, database tables, columns, indexes, views, triggers, functions, schemas, migrations, RLS, policies, `auth.uid()`, auth/session persistence, storage buckets or policies, queues, cron, realtime, vectors, `service_role`, backfills, trace indexing, durable status writes, admin logs, audit logs, code-redemption persistence, or production/staging database state, read and apply `../shared/references/supabase-database-change-guard.md` before creating implementation tasks. Do not claim DB readiness from migration files, generated types, API responses, browser flows, trace artifacts, or unit tests without same-target write-read evidence. An accepted deferral only permits `blocked`, `deferred`, or `not_claimed`; it is not readiness.
    - If the plan or work mentions email, billing, payments, subscriptions, invoices, webhooks, queues, storage, auth/session state, durable workflow status, trace visibility, admin logs, or audit logs, read and apply `../shared/references/external-side-effect-reality-guard.md` before creating tasks. Do not claim side-effect delivery from UI/API success alone.
    - If the plan or goal names material gates, broad file coverage, or source must-survive items, read and apply `../shared/references/ce-quality-gates.md`, `../shared/references/ce-implementation-ledger.md`, and `../shared/references/source-coverage-matrix.md` as applicable.
@@ -149,6 +152,12 @@ Default routing:
 - Prefer Chrome-AXI headless as the default working route for local visual
   UI/UX/design work. Use `127.0.0.1:<port>` instead of `localhost:<port>` for
   local WSL dev servers.
+- Worktree server guard: in Simon's Windows/WSL setup,
+  `server_registry.py start` opens a visible Windows Terminal. Do not use it
+  for iterative worktree UI evidence without explicit current-chat approval.
+  Reuse a matching server only when checkout/worktree, branch, env, and port
+  match the code under test. If a visible start is wrong, clean it up and stop
+  that route instead of retrying with new env guesses.
 - Use Chrome-AXI against the project-approved visible Chrome only for
   live/auth/session/CDP/extension-runtime evidence.
 - Use direct Chrome DevTools MCP when AXI is unavailable or a specialized CDP
@@ -182,6 +191,17 @@ or rediscover tool capabilities, reload
 `/home/simon/.codex/references/chrome-devtools-axi.md`, and retry AXI. Fall back
 only if the required actions remain unavailable, and report the downgraded
 evidence class.
+
+Live Runtime Preflight: before opening a visible browser for the user or
+claiming a live workflow/auth/Supabase/provider/scraper path, verify the local
+server was started with the same runtime class the claim needs. In worktrees,
+check whether local-only env files are present or intentionally sourced from
+the main checkout; report only key names, not values. Distinguish browser
+client env (`VITE_*`) from server env (`SUPABASE_SERVICE_ROLE_KEY`, provider
+keys, internal API keys). Placeholder credentials and `page.route`/network
+mocks can prove UI wiring only; they cannot prove live backend side effects.
+Run at least one minimal real backend probe for the path class being handed to
+Simon, or state `mocked_backend`, `ui_only`, or `blocked` before the user tests.
 
 Patch registry: in repos that define
 `docs/architecture/compound-engineering-skill-patches/002-ce-browser-runtime-routing-guard.md`,
@@ -347,6 +367,12 @@ that registry entry is the recovery source if this plugin cache is refreshed.
    validator, downstream handoff/consumer, and trace/review evidence. If any leg
    is untested or intentionally deferred, say so plainly.
 
+   If `ce-prompt-improver` was required or planned, include the promotion packet
+   path, final rendered review URL, autonomous run state if present, real A/B
+   validation status, and whether production wiring used the accepted candidate
+   without weakening source labels. If the lab was skipped, state why it was not
+   needed or who accepted the risk.
+
    **Supabase/DB Side-Effect Audit** — Before marking database or Supabase work
    done, compare the implementation against
    `../shared/references/supabase-database-change-guard.md`. State the target
@@ -370,6 +396,18 @@ that registry entry is the recovery source if this plugin cache is refreshed.
    completion is `verified_complete`, `verified_with_deferrals`,
    `not_complete`, or `blocked`; do not let a positive review replace this
    source-of-truth check.
+
+   **Plan Completion Gate Ledger** — For every plan-document execution, before
+   final summary and before saying "done", compare the current work against
+   `../shared/references/plan-completion-gate-ledger.md`. Produce or update a
+   ledger that maps each plan requirement, implementation unit, verification
+   gate, test scenario, and explicit deferred item to evidence and status:
+   `passed`, `failed`, `blocked`, `deferred`, `not_claimed`, or
+   `not_applicable`. If any required row is not `passed`, the final completion
+   claim must be downgraded to `verified_with_deferrals`, `not_complete`, or
+   `blocked` and the final answer must say exactly which gate remains open.
+   Never let a subset proof, happy-path browser run, mocked test, code review,
+   or green unit suite stand in for the plan's full verification set.
 
 
 2. **Incremental Commits**

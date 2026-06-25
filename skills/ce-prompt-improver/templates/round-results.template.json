@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "round_id": "round-01-manual",
+  "title": "CE Prompt Improver Review",
+  "kicker": "Layout smoke · not an A/B test",
+  "heroTitleHtml": "Prompt candidate <em>review</em>",
+  "lede": "Short explanation of what this layout smoke checks and why it is not a real A/B test.",
+  "evidence_class": "layout_smoke_not_ab_test",
+  "left_variant_id": "baseline",
+  "default_right_variant": "candidate",
+  "roundNavigation": [
+    { "id": "round-01-manual", "shortLabel": "R01", "current": true }
+  ],
+  "variants": [
+    { "id": "baseline", "label": "Baseline", "shortLabel": "A" },
+    { "id": "candidate", "label": "Candidate", "shortLabel": "B" }
+  ],
+  "cases": [
+    {
+      "id": "case-01",
+      "title": "Case title",
+      "intent": "What this case tests.",
+      "expected_behavior": "What a good candidate should do.",
+      "watch_for": "What would fail the guardrail.",
+      "metadata": { "sourceClass": "layout_smoke_not_ab_test" },
+      "results": [
+        {
+          "variantId": "baseline",
+          "parsedOk": true,
+          "metrics": { "schema_ok": true },
+          "prompt": { "system": "Baseline system prompt or reference.", "user": "Baseline user prompt or reference." },
+          "responseText": "Baseline response summary.",
+          "parsedOutput": {}
+        },
+        {
+          "variantId": "candidate",
+          "parsedOk": true,
+          "metrics": { "schema_ok": true },
+          "prompt": { "system": "Candidate system prompt or reference.", "user": "Candidate user prompt or reference." },
+          "responseText": "Candidate response summary.",
+          "parsedOutput": {}
+        }
+      ]
+    }
+  ],
+  "decision": {
+    "verdict": "pending",
+    "recommended_next_step": "pending_hitl",
+    "confidence": "low"
+  }
+}

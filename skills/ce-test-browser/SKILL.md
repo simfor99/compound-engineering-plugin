@@ -65,6 +65,14 @@ persistence, email, payment, or workflow side effect, pair the browser evidence
 with network/server/provider/trace evidence or report the live leg as untested
 or blocked.
 
+Live Backend Preflight: if the user will manually test a visible page, or if the
+report will claim a live workflow/auth/Supabase/provider/scraper leg, do not
+stop at a rendered page or mocked `page.route` flow. Confirm the server is using
+real required env for that claim class, including server-only keys, and make one
+minimal real request to the relevant endpoint class. If the probe only reaches
+validation, report that narrow result. If the browser test intercepts or mocks
+the endpoint, classify the result as `mocked_backend` or `ui_only`.
+
 ## Runtime Prompt Contract Guard
 
 When a browser scenario claims prompt fidelity, model-visible data, structured
@@ -227,6 +235,13 @@ Set `PIPELINE_MODE=1` in your shell when the argument `mode:pipeline` is present
 ### 6. Start Dev Server if Not Running, Then Verify
 
 **Pipeline mode only:** If no server is already listening on `$PORT`, start one automatically in the background. In manual mode, inform the user and stop.
+
+**Simon/Worktree visible-server override:** If the active project instructions
+require `server_registry.py` and that registry `start` opens a visible Windows
+Terminal, do not auto-start it in pipeline mode without explicit current-chat
+approval. Reuse only a server whose project path, checkout/worktree, env, and
+port match the code under test. If a visible server was started and proves
+wrong, clean it up and stop instead of retrying with new env guesses.
 
 ```bash
 if lsof -i ":${PORT}" -sTCP:LISTEN -t >/dev/null 2>&1; then

@@ -120,6 +120,12 @@ Resolve the port with `bash scripts/resolve-port.sh --type <type>`.
 
 Start the dev server in the background, log output to a temp file. Probe `http://localhost:<port>` for up to 30 seconds. For Chrome-AXI headless browser access, open `http://127.0.0.1:<port>` even if the server probe used localhost. If it doesn't come up, show the last 20 lines of the log and ask the user what to do.
 
+Simon/Worktree guard: if project instructions require
+`server_registry.py start` and that command opens a visible Windows Terminal,
+do not use it as an automatic polish/test loop. Ask before starting one visible
+server window, and after a wrong visible start clean up and stop instead of
+retrying with different env guesses.
+
 ### 1.4 Open in browser
 
 Load `references/ide-detection.md` for the env-var probe table. If Chrome-AXI

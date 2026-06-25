@@ -35,9 +35,67 @@ git rev-parse --show-superproject-working-tree
 - **Non-empty** output -> you are in a submodule; treat it as a normal checkout and continue to Step 1.
 - **Empty** output -> you are **already in an isolated worktree**. Report the worktree path (`git rev-parse --show-toplevel`) and current branch, and **work in place**. Do not create another worktree — a worktree-from-worktree lands in the wrong tree and is invisible to the harness that made the current one.
 
+#### Worktree Runtime Environment And Server Guard
+
+When the worktree will run a local server, browser test, workflow, auth path,
+Supabase-backed endpoint, provider call, scraper, queue, trace writer, or any
+other live-ish runtime, treat the worktree as a new machine until proven
+otherwise. Worktree isolation only copies Git-tracked files; ignored local
+runtime files such as `.env.local` are usually absent. Do this handoff before
+starting a server, opening a browser, or claiming live evidence:
+
+1. Classify the intended evidence before setup:
+   - `ui_static` / `mock_render`: no live backend claim.
+   - `ui_auth` / `api_live` / `workflow_live` / `provider_live`: real runtime
+     claim; env and backend preflight are mandatory.
+2. Compare repo-root env files in the current worktree against the original
+   checkout or base repo when it is known (`.env`, `.env.local`,
+   `.env.development`, `.env.test`). Report only presence/absence and required
+   key names; never print secret values.
+3. Identify required key names from `.env.example`, route docs, the target
+   command, and the target runtime path. Keep client and server env separate:
+   Vite `VITE_*` values can unblock browser rendering, but they do not provide
+   server-only credentials such as `SUPABASE_SERVICE_ROLE_KEY`.
+4. If required local-only env files are absent from the worktree, stop before
+   starting runtime and choose one explicit env source:
+   - source the main checkout's local env at server start,
+   - create a local non-committed env file/symlink if the repo convention
+     already allows it and state the source path,
+   - use dummy values only for explicit mock/render evidence,
+   - or mark the live/runtime gate as blocked.
+5. Dummy or placeholder credentials may be used only for mock/render/smoke
+   evidence. They cannot support a claim about live auth, Supabase persistence,
+   workflow start, provider calls, scraper output, or production readiness.
+6. If a route requires both a build-time/client flag and a server/runtime flag,
+   verify both before opening the browser. Example shape:
+   `VITE_E2E_CONTEXT_ENTRY=1` is not the same proof as
+   `GTM_AUDIT_E2E_CONTEXT_ENTRY=1`.
+7. Before any registry-managed dev server start, run registry `status` or
+   `scan` read-only. Reuse an existing server only when its project path,
+   worktree/branch, port, command, and env source match the intended evidence.
+   If the registry cannot prove env equivalence, treat the server as
+   unverified until a backend preflight passes.
+8. In WSL/Windows setups where the server registry opens a visible terminal,
+   do not loop through visible server restarts with different env guesses. One
+   wrong visible start is enough evidence to stop, clean up or report the
+   blocker, and ask before trying another visible start.
+9. Before handing a visible URL to the user, run a minimal preflight that hits
+   the same class of backend path expected by the manual test. If the real
+   endpoint is not exercised, label the browser session as UI-only or mocked.
+10. The handoff must include the env source class (`repo_env_file`,
+   `main_checkout_env_source`, `local_symlink`, `explicit_export`,
+   `dummy_mock_env`, or `blocked_missing_env`), the server path/port, and the
+   evidence class claimed.
+
 ## Step 1: Prefer the harness's native worktree tool
 
 If the harness provides a native worktree primitive — for example an `EnterWorktree` / `WorktreeCreate` tool, a `/worktree` command, or a `--worktree` flag — use it only after the branch consent guard approves the exact branch/worktree shape, then stop. Native tools place, track, and clean up the worktree so the harness can manage it. A behind-the-back `git worktree add` creates phantom state the harness cannot see, navigate to, or clean up.
+
+External worktree pool managers such as Treehouse are not the default for this
+CE skill. Use them only when the user explicitly asks for that tool, when a
+separate Treehouse-specific skill owns the flow, or when the harness itself
+exposes Treehouse as its native worktree primitive. Do not add Treehouse to fix
+an env/server problem; fix the env/server handoff above.
 
 ## Step 2: Git fallback
 

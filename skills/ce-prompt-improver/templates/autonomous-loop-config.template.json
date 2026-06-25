@@ -1,0 +1,65 @@
+{
+  "mode": "autonomous_candidate_search",
+  "title": "CE Prompt Improver autonomous A/B",
+  "source": "repo-relative source document or prompt contract",
+  "campaignDir": "docs/todo/2026_06_04/07_experiments/NNN_ce-prompt-improver-example__YYYY_MM_DD__HH-MM",
+  "goal": "One concrete target behavior for the prompt or output contract.",
+  "provider": {
+    "profile": "perplexity_sonar",
+    "route": "perplexity-agent",
+    "surface": "perplexity-agent",
+    "preset": "pro-search",
+    "maxOutputTokens": 1200,
+    "envFile": ".env.local"
+  },
+  "budget": {
+    "maxRounds": 3,
+    "maxVariantsPerRound": 2
+  },
+  "promotion": {
+    "requireRealAb": true,
+    "requireTraceIntegrity": true,
+    "requireSchemaOk": true,
+    "minCandidateScore": 4.2,
+    "minGuardrailScore": 4,
+    "minDelta": 0
+  },
+  "mustSurvive": [
+    "Existing output contract fields remain parseable."
+  ],
+  "mustReject": [
+    "Static mocks or fixture-only evidence are not promoted as real A/B evidence."
+  ],
+  "baseline": {
+    "id": "A_current",
+    "label": "A Current",
+    "system": "path/to/baseline/system.txt",
+    "user": "path/to/baseline/user.txt"
+  },
+  "rounds": [
+    {
+      "id": "round-01-candidate",
+      "label": "R01 Candidate",
+      "lever": "One bounded prompt improvement lever.",
+      "candidate": {
+        "id": "B_candidate",
+        "label": "B Candidate",
+        "system": "path/to/candidate/system.txt",
+        "user": "path/to/candidate/user.txt"
+      },
+      "cases": [
+        {
+          "id": "case-01",
+          "companyName": "Example case",
+          "variables": {
+            "submitted_url": "https://example.com/"
+          },
+          "expectedObject": "dashboard_page_context",
+          "testIntent": {
+            "goal": "Candidate produces the target contract without weakening baseline facts."
+          }
+        }
+      ]
+    }
+  ]
+}

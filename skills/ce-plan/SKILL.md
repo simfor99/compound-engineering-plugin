@@ -131,6 +131,15 @@ in `docs/plans/<plan-stem>/prompt-contracts/`, and link both folders from the
 plan; do not use global `docs/plans/prompts/` or
 `docs/plans/prompt-contracts/` collections.
 
+For material prompt-contract changes whose correctness depends on LLM/provider
+behavior, plan a `ce-prompt-improver` gate before production wiring unless an
+accepted promotion packet already exists. The gate should name the lab goal,
+baseline, candidate lever or allowed lever set, case matrix, provider profile,
+iteration budget, hard gates, rendered review URL expectation, and promotion
+packet handoff. Plans may describe autonomous A/B testing as a verification
+unit, but must keep production wiring as a later unit gated by the accepted
+packet.
+
 #### Supabase Database Change Guard
 
 When planned work includes Supabase, Postgres, SQL, database tables, columns,
@@ -191,6 +200,8 @@ Every plan should contain:
 - Prompt-contract source, runtime transport, and output-contract verification
   details when the work touches product/runtime prompts or model-visible
   behavior
+- CE Prompt Improver gate details when prompt/schema/provider-output changes
+  require A/B evidence before production wiring
 - Quality gates or accepted deferrals for prompt, DB, browser, side-effect,
   security, release, backup, or evidence-sensitive work
 - Source coverage for material source artifacts whose P0/P1 items must survive
@@ -673,6 +684,7 @@ For each unit, include:
   - **Integration scenarios** (when the unit crosses layers) - behaviors that mocks alone will not prove, e.g., "creating X triggers callback Y which persists Z". Include these for any unit touching callbacks, middleware, or multi-layer interactions
   - **Evidence authenticity** (when a scenario could be mistaken for stronger proof) - name the expected evidence class from `../shared/references/evidence-authenticity-guard.md`, plus `proves` and `does_not_prove`. If the first pass is mock/replay, add the live follow-up gate before readiness.
   - **Evidence claim integrity** (when a scenario supports readiness/completion) - name the claim class from `../shared/references/evidence-claim-integrity-guard.md`, what the evidence proves, and the stronger claims it does not prove.
+  - **CE Prompt Improver gate** (when prompt-contract readiness depends on LLM/provider behavior) - name whether the gate is `manual`, `autonomous_candidate_search`, or `pipeline_gate`; include baseline, candidate lever, provider profile, max rounds, hard gates, review data validation, trace verification, and the promotion packet required before production wiring.
   - **Case matrix coverage** (when origin requirements or this plan define a case matrix, UX matrix, acceptance examples, state machine, decision matrix, or LLM/provider/scraper/workflow outcome set) - map each readiness-bearing origin case to a test scenario or quality gate using the Case ID, expected user-visible outcome, expected machine outcome, evidence class, claim class, readiness gate, `proves`, and `does_not_prove` fields from `../shared/references/case-matrix-coverage-guard.md`. If only a representative subset is tested, label it `smoke_only` and state which rows remain `deferred` or `not_claimed`.
   - **Supabase/DB side effects** (when the unit writes durable state, changes schema/RLS, or claims persisted status) - name the target environment, migration path, affected objects, expected IDs/fields, same-target write-read check, cleanup/retention stance, and what remains unproven, following `../shared/references/supabase-database-change-guard.md`.
   - **External side effects** (when the unit sends email, touches billing, emits webhooks, writes queues/storage/auth/session/trace visibility, or changes durable workflow status) - name the target environment, entry path, write evidence, readback/visibility evidence, cleanup/rollback stance, and claim status following `../shared/references/external-side-effect-reality-guard.md`.
@@ -784,6 +796,7 @@ Before finalizing, check:
 - If a High-Level Technical Design section is included, it uses the right medium for the work, carries the non-prescriptive framing, and does not contain implementation code (no imports, exact signatures, or framework-specific syntax)
 - Per-unit technical design fields, if present, are concise and directional rather than copy-paste-ready
 - If the plan creates a new directory structure, would an Output Structure tree help reviewers see the overall shape?
+- If prompt-contract work depends on LLM/provider behavior, does the plan include a `ce-prompt-improver` gate or explicitly link an accepted promotion packet before production wiring?
 - If Scope Boundaries lists items that are planned work for a separate PR, issue, or repo, are they under `### Deferred to Follow-Up Work` rather than mixed with true non-goals?
 - U-IDs are unique within the plan and follow the stability rule — no two units share an ID; reordering or splitting did not renumber existing units; gaps from deletions are preserved
 - Would a visual aid (dependency graph, interaction diagram, comparison table) help a reader grasp the plan structure faster than scanning prose alone?

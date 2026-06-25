@@ -65,7 +65,7 @@
     },
     {
       "path": "skills/ce-brainstorm/SKILL.md",
-      "sha256": "e27303d0716dfa7ad9676d014189d0c122ba27e15f8f5819d02f8262eaac5082"
+      "sha256": "0f671015d895072c35d5155adbf4e976038709acb79ae22dbd663aaf7927aeb6"
     },
     {
       "path": "skills/ce-brainstorm/references/agents/slack-researcher.md",
@@ -153,7 +153,7 @@
     },
     {
       "path": "skills/ce-code-review/references/personas/learnings-researcher.md",
-      "sha256": "231a47c7fb7d8593d056482338d82741a1be3ad49ef7039b994c5e2e862d494d"
+      "sha256": "cf42c6d8c4bb2a50f11a78ef2b3f687116f379f7177454e75097dc9a694feda4"
     },
     {
       "path": "skills/ce-code-review/references/personas/maintainability-reviewer.md",
@@ -413,7 +413,7 @@
     },
     {
       "path": "skills/ce-ideate/references/agents/learnings-researcher.md",
-      "sha256": "6c766aafd538d8f4bb1af8b26004018322b950873cb4a9edab6fa923a49b3dbf"
+      "sha256": "eef1e076bcbbb2536d954c3595af9c18e41ff354a170ce77d6c3ecb57ded6607"
     },
     {
       "path": "skills/ce-ideate/references/agents/slack-researcher.md",
@@ -457,7 +457,7 @@
     },
     {
       "path": "skills/ce-optimize/references/agents/learnings-researcher.md",
-      "sha256": "48aad27f09f04c024483d469fa0a7ee99f00bfd1988781304abb221bd0c26b85"
+      "sha256": "80efdf218c33505019c2fa8b729b4c13a1dece9bf1a18d8cf96a6ce6317684a1"
     },
     {
       "path": "skills/ce-optimize/references/agents/repo-research-analyst.md",
@@ -505,7 +505,7 @@
     },
     {
       "path": "skills/ce-plan/SKILL.md",
-      "sha256": "a76268b38d76af5e5c5ec451c3b00b712af75d5aa030fc9d39af7e9b0efeda69"
+      "sha256": "a6de9295e64fc117c71a379a3df95d1b0ae58302cf1fec5f5edfac4a264d963b"
     },
     {
       "path": "skills/ce-plan/references/agents/agent-native-planning-strategist.md",
@@ -541,7 +541,7 @@
     },
     {
       "path": "skills/ce-plan/references/agents/learnings-researcher.md",
-      "sha256": "a7fb39264e4b2e573978c82e44aa38d89d25add0120e4c7c0f31934fd84b4b2f"
+      "sha256": "58bdf1ff96bd5165aa77b21a3a4bb8ef256c44125de547194d706048a11eadad"
     },
     {
       "path": "skills/ce-plan/references/agents/pattern-recognition-specialist.md",
@@ -605,7 +605,7 @@
     },
     {
       "path": "skills/ce-polish/SKILL.md",
-      "sha256": "3ad6b6bb2a5191ae672f4519b4803260c3310d311032b404eef398ab4bfee1ef"
+      "sha256": "79565ec8b408a505c3f4e8c44aa742c3f4d5c6cc515bbd0c1f6d53a72cbc6878"
     },
     {
       "path": "skills/ce-polish/references/dev-server-astro.md",
@@ -686,6 +686,114 @@
     {
       "path": "skills/ce-promote/references/spiral-cli.md",
       "sha256": "c300c8ae8681e730220c8a5f3de4aae9e18fb431318e50a112a10f498429c923"
+    },
+    {
+      "path": "skills/ce-prompt-improver/SKILL.md",
+      "sha256": "5f5b97d6caa6382c3a86d171835ee246fc23f823d9bd350840b92446630ac9e1"
+    },
+    {
+      "path": "skills/ce-prompt-improver/references/autonomous-ab-testing.md",
+      "sha256": "44ff1a16a2cbc6f73dd5327e4a1a2723d6aaa7a2ee6895e05aaaebe7b9de7257"
+    },
+    {
+      "path": "skills/ce-prompt-improver/references/ce-skillchain-integration.md",
+      "sha256": "416bdb8722004cf037f0654d7338db1f7ffc63a893602e7e3a8496f1091cc995"
+    },
+    {
+      "path": "skills/ce-prompt-improver/references/manual-lab-workflow.md",
+      "sha256": "166eb75b811c8519082ca64061dcdd4e09b1960041d799ac61da54aa0b15a130"
+    },
+    {
+      "path": "skills/ce-prompt-improver/references/provider-best-practice-routing.md",
+      "sha256": "da5d7efe24fb03c242df91302ae85d28ed341e327f19b2d80d803abdbe5d3500"
+    },
+    {
+      "path": "skills/ce-prompt-improver/references/react-review-data-contract.md",
+      "sha256": "cc5950a99e3156c61b2133c2b13030e3f784e96ae76ee328606a64762367befb"
+    },
+    {
+      "path": "skills/ce-prompt-improver/references/workspace-and-daily-room-guard.md",
+      "sha256": "ea6f49b8af560777d464dbb7a2179402dd4aea10b9fa368f22c8d89c7fdba943"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/autonomous_prompt_loop.py",
+      "sha256": "6944c4e2e923549497b818b1493caac9ffb116a6ae41e7b0719cf143855873cd"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/build_review_data.py",
+      "sha256": "82ea77566f89cfe528783020c2df00614a28ed37baffbbcf39b24a2db598661f"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/build_review_surface_data.py",
+      "sha256": "d5319edd91afc6d9e2fe1a1e54814331d14bddd190a3759e66f462206830d8c7"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/evaluate_prompt_run.py",
+      "sha256": "7d990a609ef2ab7d3d0feae7a6a187998bfc06bb19894248384ab964205f3d1a"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/evaluate_response.py",
+      "sha256": "65c59cbcd15a0c8a6b9386e62a6aa21e870ba51de406a356a5d298be7c7a775f"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/lab_runner.py",
+      "sha256": "bdff230b1bff1f84f6e7164f673b00a7fd6cad28350d456d4600ca9b75b374e3"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/make_review_url.py",
+      "sha256": "de9ac7caed0e8e61868320918710755d18e84aca7eaf7ba1138ab7d35bfd02d4"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/merge_review_surface_overrides.py",
+      "sha256": "7f48e0499963764d14603c7ae4d1dcdb59bb2dd42497591eaf95facb5fa2046b"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/normalize_results_summary_from_artifacts.py",
+      "sha256": "426939eb6fa71fb56dbc99a27bbe9e09a56061a99d231f8bf02d1bc8d3b7bcd0"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/open_review_surface.py",
+      "sha256": "66e22dc6f26c030e9da6758e5ba165ede80d8fd90146c121161b409990b33f12"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/preflight_prompt_contract.py",
+      "sha256": "9a96ef1335433be62154e400fc7c90f229d9149984f1d671a67ce22437479ca3"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/prompt_preflight.py",
+      "sha256": "00787e8d10f90b80a2ed4a265f8dc944f229b02e4fede9b0839527fd05aa0e8c"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/provider_lab_runner.py",
+      "sha256": "e1db92c501cf418f4f346e21b932556d822f93c4d12a1b74ef7820ca8e0a9e27"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/scaffold_lab.py",
+      "sha256": "3fde53042854202ea830beecf683d12b99fa6576485c752497dc65a4e07dcc14"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/self_test.py",
+      "sha256": "b9c0f4845ed8d716438c310766126258d2a300d8ca7d6ad9a0eb6f2566148dd5"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/validate_review_data.py",
+      "sha256": "40dc0e0d7f9eb902bed7cf9b63e7811ce1dce3fd33647152de19c20cfb9929e5"
+    },
+    {
+      "path": "skills/ce-prompt-improver/scripts/verify_review_surface_trace.py",
+      "sha256": "5ceb67c128d1214fa6e104d97b1cd52f44a1deec77a2f67f8f5bf9a4f54165db"
+    },
+    {
+      "path": "skills/ce-prompt-improver/templates/autonomous-loop-config.template.json",
+      "sha256": "f8b446621aefa910e8cc191c7c12dbd05362e709bd6bec26b64123b8a4358ab9"
+    },
+    {
+      "path": "skills/ce-prompt-improver/templates/promotion-packet.template.md",
+      "sha256": "5eeb0f8951773cfcc9ff652d3005739a3e05edc0f46ff1b2a1d9dc2203020021"
+    },
+    {
+      "path": "skills/ce-prompt-improver/templates/round-results.template.json",
+      "sha256": "32b958ed48de901914bbd216edccb9784ebc9e5187fd880bfc3b4a5a08676b80"
     },
     {
       "path": "skills/ce-proof/SKILL.md",
@@ -789,7 +897,7 @@
     },
     {
       "path": "skills/ce-test-browser/SKILL.md",
-      "sha256": "cd99de3ecf5d8f9cbbfa9e3064a2328e4bae2caa52d5f9300a54c09db04e7c7b"
+      "sha256": "8471fc348986a61e75577966b6f52925e0153c51e55e187b08d6fd2953f9556d"
     },
     {
       "path": "skills/ce-test-xcode/SKILL.md",
@@ -825,7 +933,7 @@
     },
     {
       "path": "skills/ce-work/SKILL.md",
-      "sha256": "18414321afc62cf652f9df647a9c5da70d1a6bd68cfc1f40eb87b34e6d6ad9ce"
+      "sha256": "19cac319d9a2a36f73c70380098112bbad81d581145e8b9bac55eef5d8165a65"
     },
     {
       "path": "skills/ce-work/references/agents/figma-design-sync.md",
@@ -849,7 +957,7 @@
     },
     {
       "path": "skills/ce-worktree/SKILL.md",
-      "sha256": "16ae60d50b2e70f85c0a191545bde2a87ffde0467c1365fa5a801d086564185d"
+      "sha256": "6cdad640e67cc8909df290d9e7b0f0546bfd15597f8eace10441022da7a124f9"
     },
     {
       "path": "skills/lfg/SKILL.md",
@@ -905,7 +1013,7 @@
     },
     {
       "path": "skills/shared/references/evidence-authenticity-guard.md",
-      "sha256": "552088a10dde9814b0c947746159831331b88444c358ec0913c5d3563de675b4"
+      "sha256": "3e314b8a4fd4ac60415f4ba3e4b02f8dd0fe28c908d01b68c076ae57be26847e"
     },
     {
       "path": "skills/shared/references/evidence-claim-integrity-guard.md",
@@ -918,6 +1026,10 @@
     {
       "path": "skills/shared/references/git-branch-consent-guard.md",
       "sha256": "e17aab64970d99a5b672e97a98fbbc9da3c095e942d835c3ec08675eb3f41a67"
+    },
+    {
+      "path": "skills/shared/references/plan-completion-gate-ledger.md",
+      "sha256": "da73978afa4e8e63d3cade24cabef920d1d3cc53983e78cb88611525450cb535"
     },
     {
       "path": "skills/shared/references/source-coverage-matrix.md",

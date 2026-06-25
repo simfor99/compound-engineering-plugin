@@ -120,6 +120,15 @@ email, payment, persistence, or workflow side effect, pair browser observation
 with network, server, database, provider, or trace evidence appropriate to the
 claim.
 
+If a browser test uses request interception, `page.route`, static API fixtures,
+placeholder service credentials, or any mocked backend response, classify the
+backend leg as `mocked_backend`/`Verified by replay/mock`. It may prove UI
+payload shape and user interaction, but it does not prove the real endpoint,
+server-only environment, auth boundary, Supabase write/read, provider call,
+workflow start, or trace persistence. Before opening a manual test URL for a
+user, run a same-runtime preflight for the relevant backend class or explicitly
+label the session `ui_only`/`mocked_backend`.
+
 ## Claim integrity receipt
 
 If a reader could infer a stronger result than the evidence supports, include a
