@@ -75,6 +75,8 @@ If the repo has a plan-local evidence receipt, update it before final summary:
 
 - Preferred sidecar for `docs/plans/<plan>.md`:
   `docs/plans/<plan-stem>/evidence-receipt.md`
+- If the plan has already been archived, the sidecar moves with it:
+  `docs/plans/_archive/<plan-stem>/evidence-receipt.md`.
 - If no sidecar exists and the change is small, include the ledger in the final
   answer.
 - Do not edit the plan body as progress state. The plan remains the decision
@@ -99,3 +101,6 @@ Before saying "done", answer these internally:
 4. Did I tell Simon the next manual test link or command only after the live
    path class was actually probed?
 5. Did I avoid turning a partial proof into a completion claim?
+6. If the plan is verified complete, did I archive the plan file and same-stem
+   sidecar together per `artifact-archive-lifecycle.md`, or clearly state why
+   archive movement is blocked/not claimed?

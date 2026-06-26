@@ -181,10 +181,14 @@ brainstorm frontmatter). Common rules:
   and below.
 - Field names in lowercase snake_case (`created_at`, `topic`, not
   `CreatedAt`, `Topic`).
-- **No status / lifecycle field.** Artifacts are point-in-time records
+- **No mutable status field.** Artifacts are point-in-time records
   (decision or discovery), not tracked work items. Do not introduce a
-  mutable `status` field or an `active → completed` lifecycle — whether
-  the work shipped is derived from git, not stored in the doc.
+  mutable `status` field. CE artifact lifecycle is represented by
+  directory location (`docs/plans/` or `docs/brainstorms/` for active
+  work, matching `_archive/` folders for completed history) per
+  `../../shared/references/artifact-archive-lifecycle.md`; whether the
+  work shipped is derived from git and archive evidence, not stored in the
+  doc body.
 - Stable across artifact revisions — never rename or repurpose a field.
 
 ## Post-write audit

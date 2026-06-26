@@ -24,6 +24,12 @@ Determine how to proceed based on what was provided in `<input_document>`.
 
 **Plan document** (input is a file path to an existing plan or specification): read the plan's metadata first — YAML frontmatter for a markdown plan, or the visible header text for an HTML plan (both formats carry the same fields). If it carries `execution: knowledge-work`, this is a **non-code plan** — read `references/non-code-execution.md` and follow that carve-out instead of the rest of this workflow. Otherwise (the field is absent or `execution: code`) → skip to Phase 1 and run the normal code lifecycle. (The marker check lives here, inside plan-document handling, because detecting the marker requires already having a file; "Bare prompt" below is unaffected.)
 
+**Blank invocation** (no input document): read
+`../shared/references/artifact-archive-lifecycle.md`, then auto-detect the
+latest active plan only from `docs/plans/*.md` and `docs/plans/*.html`.
+Ignore `docs/plans/_archive/` for blank/latest discovery. Explicit plan paths
+may still point to active or archived plans when the path exists.
+
 **Bare prompt** (input is a description of work, not a file path):
 
 1. **Scan the work area**
@@ -65,7 +71,9 @@ Determine how to proceed based on what was provided in `<input_document>`.
    - If the plan or goal names material gates, broad file coverage, or source must-survive items, read and apply `../shared/references/ce-quality-gates.md`, `../shared/references/ce-implementation-ledger.md`, and `../shared/references/source-coverage-matrix.md` as applicable.
    - If execution will use subagents, delegated workers, review agents, or background agents, read and apply `../shared/references/subagent-boundaries.md` before dispatch. Subagents provide evidence and suggested diffs; the main agent owns final interpretation, source verification, claim wording, tests, and completion status.
    - For prompt-contract-bearing plans, check for plan-local sidecars at `docs/plans/<plan-stem>/prompts/` and `docs/plans/<plan-stem>/prompt-contracts/`, then read their `INDEX.md` files plus referenced Markdown prompt files and contract files before creating implementation tasks. Do not substitute global `docs/plans/prompts/` or `docs/plans/prompt-contracts/` folders or chat memory for the plan-owned bundle.
-   - When auto-detecting the latest plan (blank invocation), glob `docs/plans/*.md` AND `docs/plans/*.html` and pick the most recent regardless of extension.
+   - Read and apply `../shared/references/artifact-archive-lifecycle.md` before resolving active versus archived plan paths.
+   - When auto-detecting the latest plan (blank invocation), glob active-root `docs/plans/*.md` AND `docs/plans/*.html` and pick the most recent regardless of extension. Do not search `docs/plans/_archive/` for blank/latest discovery.
+   - If the user explicitly passed a plan path under `docs/plans/_archive/`, read it as historical/review context only. Do not create implementation tasks or mutate code from the archived plan in place. If Simon explicitly wants to implement or resume that archived work, first confirm reactivation, move the plan and same-stem sidecar bundle back to `docs/plans/`, record the reason in `docs/plans/<plan-stem>/archive-lifecycle-ledger.md`, then continue from the restored active path.
    - Treat the plan as a decision artifact, not an execution script
    - If the plan includes sections such as `Implementation Units`, `Work Breakdown`, `Requirements` (or legacy `Requirements Trace`), `Files`, `Test Scenarios`, or `Verification`, use those as the primary source material for execution
    - Check for `Execution note` on each implementation unit — these carry the plan's execution posture signal for that unit (for example, test-first or characterization-first). Note them when creating tasks.
@@ -408,6 +416,19 @@ that registry entry is the recovery source if this plugin cache is refreshed.
    `blocked` and the final answer must say exactly which gate remains open.
    Never let a subset proof, happy-path browser run, mocked test, code review,
    or green unit suite stand in for the plan's full verification set.
+
+   **Artifact Archive Lifecycle** — After the Completion Verification Audit
+   and Plan Completion Gate Ledger allow `verified_complete`, read
+   `../shared/references/artifact-archive-lifecycle.md` and archive the
+   completed plan. Move the plan file and same-stem sidecar directory together
+   from `docs/plans/` to `docs/plans/_archive/`. Before moving, verify the
+   evidence receipt exists when required, verify link/sidecar integrity, and
+   ensure commit/PR/review follow-up will use the explicit archived path
+   rather than active-root discovery. If any required completion row is
+   `blocked`, `failed`, `deferred`, or `not_claimed`, do not archive and do
+   not claim the active root is clean. If Simon explicitly asks to reopen an
+   archived plan, move the plan and same-stem sidecar bundle back to
+   `docs/plans/` only after confirmation and record the reason in the ledger.
 
 
 2. **Incremental Commits**

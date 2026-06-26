@@ -51,6 +51,8 @@ Create or mention gates when any family is semantically in scope:
 - browser/runtime evidence for UI or extension work;
 - security, auth, privacy, or destructive operations;
 - release, backup, or artifact integrity.
+- CE artifact archive lifecycle, including plan/brainstorm sidecar movement,
+  link integrity, and root/archive discovery boundaries.
 
 ## Skill behavior
 

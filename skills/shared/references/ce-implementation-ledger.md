@@ -24,6 +24,13 @@ When executing from a plan file:
 docs/plans/<plan-stem>/implementation-ledger.md
 ```
 
+After a completed plan is archived per `artifact-archive-lifecycle.md`, the
+same-stem sidecar directory moves with the plan:
+
+```text
+docs/plans/_archive/<plan-stem>/implementation-ledger.md
+```
+
 When no plan exists, record the ledger in the smallest existing artifact that
 owns the work, or state why a durable ledger was not created.
 

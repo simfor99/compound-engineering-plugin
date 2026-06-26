@@ -233,13 +233,17 @@ the brainstorm.
   alongside `date` and as the resume-detection key when `ce-brainstorm`'s
   Phase 0.1 scans `docs/brainstorms/` for an existing artifact to continue.
 
-### No status field
+### No mutable status field
 
-Brainstorm artifacts have no `status` field and no `active → completed`
-lifecycle — a brainstorm is a one-time output that downstream consumers
-(`ce-plan`, `ce-doc-review`) reference via the plan's `origin:` field. No
-CE artifact carries a mutable status; whether work shipped is derived from
-git, not stored in the doc. Do not introduce one.
+Brainstorm artifacts have no mutable `status` field. Lifecycle is represented
+by folder location: active brainstorm artifacts live in `docs/brainstorms/`,
+completed historical artifacts live in `docs/brainstorms/_archive/`, and
+archival uses the deterministic `brainstorm_artifact_family_key` from
+`../../shared/references/artifact-archive-lifecycle.md`. Downstream consumers
+(`ce-plan`, `ce-doc-review`) reference brainstorm artifacts through explicit
+paths such as the plan's `origin:` field. Whether work shipped is derived from
+git, archive evidence, and downstream plans, not stored in the doc. Do not
+introduce a mutable status field.
 
 ### Field-name stability
 

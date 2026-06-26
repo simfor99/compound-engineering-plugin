@@ -30,13 +30,13 @@ HTML renders it as visible header text (per the html-rendering hard
 invariant: one visible source of truth per value, no hidden
 machine-readable copy).
 
-**No status field — not on the doc, not per idea.** An ideation doc is a
-point-in-time discovery artifact, not a tracked work item: it carries no
-`active → completed` lifecycle and no per-idea "explored" marker.
-Tracking mutable workflow progress inside the artifact would create a
-second source of truth that drifts — whether an idea was later pursued is
-knowable from downstream artifacts (a brainstorm or plan that picked it
-up), so it is not duplicated here.
+**No mutable status field — not on the doc, not per idea.** An ideation doc is
+a point-in-time discovery artifact, not a tracked work item. It carries no
+per-idea "explored" marker and does not encode workflow progress in
+frontmatter. Tracking mutable workflow progress inside the artifact would
+create a second source of truth that drifts — whether an idea was later pursued
+is knowable from downstream artifacts (a brainstorm or plan that picked it up),
+so it is not duplicated here.
 
 ### Grounding Context
 

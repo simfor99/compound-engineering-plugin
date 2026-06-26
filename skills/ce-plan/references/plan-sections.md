@@ -215,10 +215,15 @@ plan.
   intent the eventual commit message should reflect.
 - **`date`** — creation date in ISO 8601 (`YYYY-MM-DD`), ASCII digits only.
 
-Plans carry **no `status` field** — a plan is a decision artifact, not a
-tracked work item. `ce-work` does not mutate the plan at ship time;
-whether a plan shipped is derived from git, not stored in the doc. Do not
-add a `status` field or an `active → completed` lifecycle.
+Plans carry **no mutable `status` field** — a plan is a decision artifact,
+not a tracked work item. `ce-work` does not mutate the plan body at ship
+time. Lifecycle is represented by folder location: active plans live in
+`docs/plans/`, completed historical plans live in `docs/plans/_archive/`,
+and same-stem sidecars move with the plan per
+`../../shared/references/artifact-archive-lifecycle.md`. Whether a plan
+shipped is derived from git, archive evidence, and completion receipts, not
+stored in the doc. Do not
+add a `status` field that encodes lifecycle.
 
 ### Optional but well-known
 

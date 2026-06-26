@@ -65,7 +65,7 @@ commit/PR/readiness language. If subagents contributed, apply
 
 1. Invoke the `ce-plan` skill with `$ARGUMENTS`.
 
-   GATE: STOP. If ce-plan reported the task is non-software and cannot be processed in pipeline mode, stop the pipeline and inform the user that LFG requires software tasks. Otherwise, verify that the `ce-plan` workflow produced a plan file in `docs/plans/`. If no plan file was created, invoke `ce-plan` again with `$ARGUMENTS`. Do NOT proceed to step 2 until a written plan exists. **Record the plan file path** — it will be passed to ce-code-review in step 4.
+   GATE: STOP. If ce-plan reported the task is non-software and cannot be processed in pipeline mode, stop the pipeline and inform the user that LFG requires software tasks. Otherwise, verify that the `ce-plan` workflow produced an active plan file in `docs/plans/`. If no plan file was created, invoke `ce-plan` again with `$ARGUMENTS`. Do NOT proceed to step 2 until a written plan exists. **Record the explicit plan file path** — if ce-work later archives the completed plan under `docs/plans/_archive/`, subsequent review/commit steps must keep using the explicit archived path rather than active-root discovery. Read `../shared/references/artifact-archive-lifecycle.md` before making any archived-plan completion claim.
 
 2. Invoke the `ce-work` skill.
 

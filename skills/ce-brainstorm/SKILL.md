@@ -136,6 +136,17 @@ Sub-agent dispatch is tiered by task shape, never hardcoded to a model name:
 
 Do not proceed until you have a feature description from the user.
 
+#### Artifact Archive Lifecycle
+
+Before creating, resuming, or handing off brainstorm artifacts, read and apply
+`../shared/references/artifact-archive-lifecycle.md`. New brainstorm artifacts
+and working notes are written to the active root `docs/brainstorms/`.
+Automatic resume/open/latest discovery reads only the active root and ignores
+`docs/brainstorms/_archive/`. Explicit user-named archived paths may be read as
+history, but archived brainstorms are read-only unless Simon explicitly asks to
+reopen one and confirms moving the artifact back to the active root with a
+ledger row.
+
 ## Execution Flow
 
 ### Phase 0: Resume, Assess, and Route
@@ -166,11 +177,12 @@ The `output:` preference does NOT auto-propagate to `ce-plan` on handoff — ce-
 
 #### 0.1 Resume Existing Work When Appropriate
 
-If the user references an existing brainstorm topic or document, or there is an obvious recent matching `*-requirements.{md,html}` file in `docs/brainstorms/`:
+If the user references an existing brainstorm topic or document, or there is an obvious recent matching `*-requirements.{md,html}` file in the active root `docs/brainstorms/`:
 - Read the document
 - Confirm with the user before resuming: "Found an existing requirements doc for [topic]. Should I continue from this, or start fresh?"
 - If resuming, summarize the current state briefly, continue from its existing decisions and outstanding questions, and update the existing document instead of creating a duplicate
 - **Resume preserves the existing artifact's format, except pipeline mode.** Write back in whatever format the existing artifact uses — markdown if the existing file is `.md`, HTML if it is `.html`. Explicit `output:` arguments on this run override (e.g., resuming an `.html` doc with `output:md` switches the artifact to markdown). Pipeline mode (LFG, any `disable-model-invocation` context) always wins per Phase 0.0: even when resuming an existing `.html` brainstorm, pipeline runs force `OUTPUT_FORMAT=md` so downstream automation receives the markdown shape it expects. The resume rewrites the markdown file at the parallel path and the original `.html` is left in place untouched.
+- If the user explicitly names an archived requirements, working-notes, or review-log path under `docs/brainstorms/_archive/`, read it as historical context. Do not resume or edit it in place unless Simon confirms reactivation; then move the artifact family back to `docs/brainstorms/` using the shared archive lifecycle reference before editing.
 
 #### 0.1b Classify Task Domain
 
@@ -219,7 +231,7 @@ Product-tier triggers additional Phase 1.2 questions and additional sections in 
 
 For Standard or Deep brainstorms, create or resume a non-canonical working-notes file before substantive dialogue can grow long enough to be lost to context compaction.
 
-- Look for an obvious matching `docs/brainstorms/YYYY-MM-DD-<topic>-working-notes.md` file. If one exists, read it and continue from it.
+- Look for an obvious matching active-root `docs/brainstorms/YYYY-MM-DD-<topic>-working-notes.md` file. Ignore `docs/brainstorms/_archive/` for automatic working-note discovery. If one exists, read it and continue from it.
 - If none exists, create one once the topic and rough scope are clear enough to name. Mark it plainly as `Status: Working notes, not the final requirements contract.`
 - Keep the file concise but useful as a recovery surface. For decision-heavy product brainstorms, use stable sections such as: problem frame, one-sentence target shape, provenance labels, confirmed decisions, key flows, working case matrix, draft UX copy, tracking/admin implications, discarded options, important assumptions, open questions, and next discussion point. Do not transcript the conversation.
 - Use lightweight stable IDs when they make later discussion easier (`D1`, `F1`, `C1`, `P1`, `A1`, etc.). IDs are for conversation recovery, not final requirements numbering.

@@ -30,6 +30,18 @@ If the input is present but unclear or underspecified, do not abandon — ask on
 
 **IMPORTANT: All file references in the plan document must use repo-relative paths (e.g., `src/models/user.rb`), never absolute paths (e.g., `/Users/name/Code/project/src/models/user.rb`). This applies everywhere — implementation unit file lists, pattern references, origin document links, and prose mentions. Absolute paths break portability across machines, worktrees, and teammates.**
 
+#### Artifact Archive Lifecycle
+
+Before creating, resuming, discovering, or handing off CE planning artifacts,
+read and apply `../shared/references/artifact-archive-lifecycle.md`.
+New plans are written to the active root `docs/plans/`. Automatic plan and
+upstream-brainstorm discovery reads active roots only and ignores `_archive`
+subtrees. Explicit user-named plan paths, `origin:` links, PR links, and issue
+links may point to archived artifacts when the path exists. Archived artifacts
+are read-only history unless Simon explicitly asks to reopen them and confirms
+moving the artifact plus same-stem sidecar bundle back to the active root with
+a ledger row.
+
 ## Core Principles
 
 1. **Use requirements as the source of truth** - If `ce-brainstorm` produced a requirements document, planning should build from it rather than re-inventing behavior.
@@ -240,10 +252,11 @@ Resolution steps:
 
 #### 0.1 Resume Existing Plan Work When Appropriate
 
-If the user references an existing plan file or there is an obvious recent matching plan in `docs/plans/`:
+If the user references an existing plan file or there is an obvious recent matching plan in the active root `docs/plans/`:
 - Read it
 - Confirm whether to update it in place or create a new plan
 - If updating, revise only the still-relevant sections. Plans do not carry per-unit progress state — progress is derived from git by `ce-work`, so there is no progress to preserve across edits
+- If the user explicitly names an archived plan path under `docs/plans/_archive/`, read it as historical context. Do not update it in place unless Simon confirms reactivation; then move the plan and same-stem sidecar bundle back to `docs/plans/` using the shared archive lifecycle reference before editing.
 
 **Deepen intent:** The word "deepen" (or "deepening") in reference to a plan is the primary trigger for the deepening fast path. When the user says "deepen the plan", "deepen my plan", "run a deepening pass", or similar, the target document is a **plan** in `docs/plans/`, not a requirements document. Use any path, keyword, or context the user provides to identify the right plan. If a path is provided, verify it is actually a plan document. If the match is not obvious, confirm with the user before proceeding.
 
@@ -294,7 +307,7 @@ Otherwise, read `references/universal-planning.md` and follow that workflow inst
 
 #### 0.2 Find Upstream Requirements Document
 
-Before asking planning questions, search `docs/brainstorms/` for files matching `*-requirements.md` or `*-requirements.html` (ce-brainstorm emits whichever extension matches its resolved output format; both are valid upstream requirements docs and either may be carried as the plan's `origin:`).
+Before asking planning questions, search the active root `docs/brainstorms/` for files matching `*-requirements.md` or `*-requirements.html` (ce-brainstorm emits whichever extension matches its resolved output format; both are valid upstream requirements docs and either may be carried as the plan's `origin:`). Ignore `docs/brainstorms/_archive/` for this automatic search. If the user provided an explicit archived requirements path, or an existing plan's `origin:` points to an archived path, resolve that archived path directly.
 
 **Relevance criteria:** A requirements document is relevant if:
 - The topic semantically matches the feature description
@@ -612,7 +625,7 @@ Ask the user only when the answer materially affects architecture, scope, sequen
 - Determine the plan type: `feat`, `fix`, or `refactor`
 - Build the filename following the repository convention: `docs/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.md`
   - Create `docs/plans/` if it does not exist
-  - Check existing files for today's date to determine the next sequence number (zero-padded to 3 digits, starting at 001)
+  - Check existing active-root files in `docs/plans/` for today's date to determine the next sequence number (zero-padded to 3 digits, starting at 001). Do not count `docs/plans/_archive/` for new active plan numbering.
   - Keep the descriptive name concise (3-5 words) and kebab-cased
   - Examples: `2026-01-15-001-feat-user-authentication-flow-plan.md`, `2026-02-03-002-fix-checkout-race-condition-plan.md`
   - Avoid: missing sequence numbers, vague names like "new-feature", invalid characters (colons, spaces)
@@ -871,7 +884,7 @@ Use the Write tool to save the complete plan to the resolved format's extension:
 docs/plans/YYYY-MM-DD-NNN-<type>-<descriptive-name>-plan.<md|html>
 ```
 
-Extension follows `OUTPUT_FORMAT` from Phase 0.0 — `.md` when markdown, `.html` when HTML. Sequence number `NNN` is derived from existing plan files in `docs/plans/` regardless of extension (count both `.md` and `.html`) to ensure unique daily ordering.
+Extension follows `OUTPUT_FORMAT` from Phase 0.0 — `.md` when markdown, `.html` when HTML. Sequence number `NNN` is derived from existing active-root plan files in `docs/plans/` regardless of extension (count both `.md` and `.html`, ignore `_archive`) to ensure unique daily ordering.
 
 Compose the plan using the content from `references/plan-sections.md` and the format-specific principles from the rendering reference loaded at Phase 0.0 (`markdown-rendering.md` OR `html-rendering.md`).
 
@@ -940,7 +953,33 @@ When deepening is warranted, read `references/deepening-workflow.md` for confide
 
 **STOP. Load `references/plan-handoff.md` now before continuing.** It carries the full instructions for 5.3.8 (document review), 5.3.9 (final checks and cleanup), and 5.4 (post-generation handoff, including the Publish to Proof flow and Issue Creation branching). **This load is non-optional** — without it, the agent renders the post-generation menu, captures the user's selection, and stops without firing the routed action. Document review at 5.3.8 runs unconditionally for `OUTPUT_FORMAT=md` regardless of whether the confidence check already ran; for `OUTPUT_FORMAT=html`, plan-handoff's 5.3.8 format gate skips ce-doc-review because its mutation mechanics are markdown-only today. The default mode for markdown is headless (`mode:headless`) — `safe_auto` fixes apply silently, remaining findings surface contextually above the menu, and a deeper interactive review is opt-in via free-form prompt.
 
-After document review and final checks, print a one-line summary of the headless review state above the menu (e.g., `Doc review applied 3 fixes. 2 decisions, 1 proposed fix, 4 FYI observations remain (1 at P1).`; for HTML plans where 5.3.8 was skipped, print `Doc review skipped — ce-doc-review is markdown-only today; the HTML plan was not reviewed.`), then present the menu. The menu has 5 options when actionable findings remain (`proposed_fixes_count + decisions_count > 0`) and 4 options otherwise — including the FYI-only case AND the HTML-skip case (`skipped_reason: output_format_html`), both of which hide option 2 because ce-doc-review's walkthrough is gated to actionable markdown findings and would have nothing valid to walk through. See `references/plan-handoff.md` for the full rule. Render the 5-option menu as a numbered list in chat — a legitimate option-overflow case, since all five are distinct, required destinations that cannot be trimmed without losing real user choice — with the hint "Pick a number or describe what you want." On platforms whose blocking question tool has no option cap (Codex `request_user_input`, Pi `ask_user`), use the platform's blocking tool; when that tool is unavailable or errors (e.g., Codex edit modes where `request_user_input` is not exposed), fall back to the same numbered-list-in-chat rendering with the "Pick a number or describe what you want." hint. The 4-option case routes through the platform's blocking tool normally (`AskUserQuestion` in Claude Code — call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), with the same numbered-list-in-chat fallback when no blocking tool is available or the call errors. Never silently skip the question.
+#### 5.5 Archive represented brainstorm origin before handoff
+
+When this plan was created from an explicit upstream brainstorm requirements
+document, run an archive pass after the plan file is successfully written,
+document review and final checks have settled the plan, and before printing or
+acting on the post-generation menu:
+
+1. Read `../shared/references/artifact-archive-lifecycle.md`.
+2. Archive only the explicit `origin:` requirements document and directly
+   linked brainstorm artifacts with the same `brainstorm_artifact_family_key`.
+3. Do not archive topic-adjacent working notes or review logs unless they share
+   the exact family key, contain an explicit backlink to the origin/plan, or
+   Simon confirms the move.
+4. Record the archive pass in the generated plan's same-stem sidecar ledger:
+   `docs/plans/<plan-stem>/archive-lifecycle-ledger.md`.
+5. Verify the plan's `origin:` path resolves after the move. If the origin path
+   changes, update the plan metadata before the menu is rendered.
+6. If archival is blocked or ambiguous, leave the brainstorm artifact in the
+   active root and record the reason as `requires_simon_decision`; do not claim
+   the brainstorm root is clean.
+
+Only after this archive pass has either completed or been recorded as blocked /
+ambiguous may the menu below be rendered. Every menu route, including
+`Start /ce-work`, must pass the final explicit plan path after any metadata
+updates.
+
+After document review, final checks, and the represented-brainstorm archive pass, print a one-line summary of the headless review state above the menu (e.g., `Doc review applied 3 fixes. 2 decisions, 1 proposed fix, 4 FYI observations remain (1 at P1).`; for HTML plans where 5.3.8 was skipped, print `Doc review skipped — ce-doc-review is markdown-only today; the HTML plan was not reviewed.`), then present the menu. The menu has 5 options when actionable findings remain (`proposed_fixes_count + decisions_count > 0`) and 4 options otherwise — including the FYI-only case AND the HTML-skip case (`skipped_reason: output_format_html`), both of which hide option 2 because ce-doc-review's walkthrough is gated to actionable markdown findings and would have nothing valid to walk through. See `references/plan-handoff.md` for the full rule. Render the 5-option menu as a numbered list in chat — a legitimate option-overflow case, since all five are distinct, required destinations that cannot be trimmed without losing real user choice — with the hint "Pick a number or describe what you want." On platforms whose blocking question tool has no option cap (Codex `request_user_input`, Pi `ask_user`), use the platform's blocking tool; when that tool is unavailable or errors (e.g., Codex edit modes where `request_user_input` is not exposed), fall back to the same numbered-list-in-chat rendering with the "Pick a number or describe what you want." hint. The 4-option case routes through the platform's blocking tool normally (`AskUserQuestion` in Claude Code — call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), with the same numbered-list-in-chat fallback when no blocking tool is available or the call errors. Never silently skip the question.
 
 **Question:** "Plan ready at `<absolute path to plan>`. What would you like to do next?" (use absolute path so the reference is clickable in modern terminals)
 
