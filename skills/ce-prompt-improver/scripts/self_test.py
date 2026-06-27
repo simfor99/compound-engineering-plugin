@@ -53,6 +53,61 @@ def main() -> int:
         ], repo_root)
         validation_report = json.loads(validation.stdout)
         assert validation_report["status"] == "pass", validation.stdout
+        render = run([
+            sys.executable,
+            str(SKILL_DIR / "scripts" / "render_review_html.py"),
+            str(data_path),
+        ], repo_root)
+        html_path = Path(render.stdout.strip())
+        assert html_path.exists(), render.stdout
+        cleanup = run([
+            sys.executable,
+            str(SKILL_DIR / "scripts" / "cleanup_review_html.py"),
+            str(html_path),
+            "--decision",
+            "inconclusive",
+        ], repo_root)
+        cleanup_report = json.loads(cleanup.stdout)
+        assert cleanup_report["status"] == "deleted_after_decision", cleanup.stdout
+        assert data_path.exists(), "cleanup must retain data.json evidence"
+        assert not html_path.exists(), "cleanup must delete only rendered HTML"
+        stray_html = tmp / "unrelated" / "html" / "index.html"
+        stray_html.parent.mkdir(parents=True)
+        stray_html.write_text("<html></html>", encoding="utf-8")
+        bad_cleanup = subprocess.run(
+            [
+                sys.executable,
+                str(SKILL_DIR / "scripts" / "cleanup_review_html.py"),
+                str(stray_html),
+                "--decision",
+                "inconclusive",
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert bad_cleanup.returncode != 0, bad_cleanup.stdout + bad_cleanup.stderr
+        assert stray_html.exists(), "cleanup must reject non-review html/index.html targets"
+        isolated_home = tmp / "isolated-home"
+        isolated_home.mkdir()
+        render_env = dict(os.environ)
+        render_env["HOME"] = str(isolated_home)
+        isolated_render = subprocess.run(
+            [
+                sys.executable,
+                str(SKILL_DIR / "scripts" / "render_review_html.py"),
+                str(data_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+            check=False,
+            env=render_env,
+        )
+        assert isolated_render.returncode == 0, isolated_render.stdout + isolated_render.stderr
+        isolated_html = Path(isolated_render.stdout.strip())
+        assert isolated_html.exists(), isolated_render.stdout
 
         scaffold_root = tmp / "scaffold"
         scaffold = run([
@@ -184,6 +239,11 @@ def main() -> int:
         assert len(loop_state["rounds"]) == 2, loop_state
         round_data = Path(loop_state["rounds"][0]["dataPath"])
         assert round_data.exists(), loop_state
+        round_html = Path(loop_state["rounds"][0]["reviewHtmlPath"])
+        assert round_html.exists(), loop_state
+        assert Path(loop_state["latestReviewHtmlPath"]).exists(), loop_state
+        assert Path(loop_state["latestReviewDataPath"]).exists(), loop_state
+        assert loop_state["latestReviewHtmlCleanupReceipt"], loop_state
         report_data = json.loads(round_data.read_text(encoding="utf-8"))
         assert len(report_data["roundNavigation"]) == 2, report_data.get("roundNavigation")
         assert report_data["roundNavigation"][0]["current"] is True, report_data.get("roundNavigation")

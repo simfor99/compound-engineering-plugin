@@ -212,7 +212,7 @@ TBD
     print(campaign)
     if workspace_reason == "fallback_non_render_workspace":
         print(
-            "warning: fallback workspace is not docs/todo; React review routes may not load html/assets/data.json",
+            "warning: fallback workspace is not docs/todo; render static html/index.html before sharing review evidence",
         )
     return 0
 

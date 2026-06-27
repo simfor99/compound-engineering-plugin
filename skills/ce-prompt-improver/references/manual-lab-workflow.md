@@ -33,7 +33,7 @@ Recommended round steps:
 6. Run the available evaluator, replay, provider call, or manual fixture.
 7. Run deterministic prompt preflight for each rendered prompt when provider behavior is in scope.
 8. Capture outputs and source classes.
-9. Build `html/assets/data.json` for the A/B review surface when the repo supports it, using the repo's active typed contract, sample data, or builder script.
+9. Build `html/assets/data.json` for the A/B review surface using the shared static review contract, sample data, or builder script.
 10. Record the human decision.
 11. Either revise in a new round or write a promotion packet.
 
@@ -42,12 +42,14 @@ Default command path:
 ```bash
 python <skill>/scripts/scaffold_lab.py --slug <slug> --source <source-or-brief> --goal "<goal>"
 cp <skill>/templates/round-results.template.json <round>/round-results.json
+python <skill>/scripts/preflight_prompt_contract.py --prompt <rendered-prompt.txt> --variant-id <id> --provider-route <route> --out <round>/artifacts/preflight/<case>__<variant>.json
 python <skill>/scripts/build_review_data.py --round-results <round>/round-results.json --out <round>/html/assets/data.json
 python <skill>/scripts/validate_review_data.py <round>/html/assets/data.json --out <round>/artifacts/review-data-validation.json
-python <skill>/scripts/make_review_url.py <round>/html/assets/data.json
+python <skill>/scripts/render_review_html.py <round>/html/assets/data.json
+python <skill>/scripts/open_review_surface.py <round>/html/index.html --print-only
 ```
 
-The route is shareable only after the validator passes and the path is accepted by the active repo's resolver. The route is only an A/B test if `validate_review_data.py --require-real-ab` passes.
+The static snapshot is shareable only after the validator passes and `html/index.html` exists. The snapshot is only an A/B test if `validate_review_data.py --require-real-ab` passes; that validator is necessary but not sufficient for promotion, which also needs trace integrity, provider preflight, visible source classes, and an honest HITL decision.
 
 For provider-backed rounds, also read `provider-best-practice-routing.md` and run:
 
@@ -55,13 +57,13 @@ For provider-backed rounds, also read `provider-best-practice-routing.md` and ru
 python <skill>/scripts/preflight_prompt_contract.py --prompt <rendered-prompt.txt> --variant-id <id> --provider-route <route> --out <round>/artifacts/preflight/<case>__<variant>.json
 ```
 
-Provider-profile and preflight artifacts must survive into `preflightChecks`; otherwise the review packet is incomplete.
+Provider-profile and preflight artifacts must survive into `preflightChecks`; otherwise the review packet is incomplete. If preflight is produced after a draft data build, rebuild the data packet, re-run validation, and rerender the static HTML.
 
 ## Review packet contract
 
 `html/assets/data.json` should be decision-support data, not a raw trace dump. Keep enough evidence for inspection, but organize it around the choice the human must make.
 
-Before writing the packet, inspect the active repo's review-surface type, sample data, or generator script. For PromptReview-style surfaces, `variants` and `cases[].results` are UI-bearing fields, not optional decoration: without them the A/B comparison cannot choose left/right outputs.
+Before writing the packet, inspect the shared static review-surface contract, sample data, or generator script. For PromptReview-style surfaces, `variants` and `cases[].results` are UI-bearing fields, not optional decoration: without them the A/B comparison cannot choose left/right outputs.
 
 Recommended top-level fields:
 
@@ -97,9 +99,17 @@ When builder and verifier scripts exist, prefer the repo's established flow:
 
 1. Build `html/assets/data.json` from the round results.
 2. Verify that the review data does not drift from request, rendered prompt, response, parsed output, metrics, trace, or artifact evidence.
-3. Only then provide the rendered route or static snapshot path.
+3. Render `html/index.html` from the shared template and only then provide the static snapshot path.
 
-If the route accepts only specific workspace roots, place the campaign under a route-allowed workspace. A data packet in a hidden scratch directory is still useful as local evidence, but it is not a rendered React review surface until the route can load it.
+The static renderer works for both daily experiment workspaces and scratch workspaces. A data packet in a hidden scratch directory is still useful as local evidence, but it is not a rendered review surface until `html/index.html` has been generated from it.
+
+After the human decision, delete disposable rendered HTML if it is no longer needed:
+
+```bash
+python <skill>/scripts/cleanup_review_html.py <round>/html/index.html --decision <promote_candidate|revise_candidate|keep_baseline|split_candidate|inconclusive>
+```
+
+Keep `html/assets/data.json`, artifacts, validation reports, trace reports, and the promotion or inconclusive packet.
 
 For CE Prompt Improver's own portable flow, use `round-results.json` as the editable source and generate `html/assets/data.json` from it. This keeps the human-editable test description separate from the UI-specific PromptReview shape.
 

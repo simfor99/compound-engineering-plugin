@@ -24,13 +24,14 @@ The skill should end with one of these outcomes:
 | `promote_candidate` | Human accepted the candidate prompt or contract. | Write a promotion packet, then route to `ce-plan` or `ce-work`. |
 | `revise_candidate` | Candidate is promising but not ready. | Start the next lab round. |
 | `keep_baseline` | Baseline is better or safer. | Record why and stop. |
-| `split_experiment` | Candidate mixed too many concerns. | Create smaller variants. |
+| `split_candidate` | Candidate mixed too many concerns. | Create smaller variants. |
 | `inconclusive` | Evidence is too weak. | Add cases, improve evaluator, or stop honestly. |
 
 For autonomous or pipeline-gate calls, also write `autonomous-run-state.json`
-with the current status, budget, rounds attempted, latest review URL, stop
-reason, failed gates, and accepted candidate if any. This state lets `ce-plan`
-or `ce-work` resume the gate without reconstructing decisions from chat.
+with the current status, budget, rounds attempted, latest static review HTML path,
+latest review data path, expected cleanup receipt path, stop reason, failed gates,
+and accepted candidate if any. This state lets `ce-plan` or `ce-work` resume the
+gate without reconstructing decisions from chat.
 
 ## Boundary with ce-plan
 

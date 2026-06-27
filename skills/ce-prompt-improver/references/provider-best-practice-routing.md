@@ -92,7 +92,7 @@ python <skill>/scripts/preflight_prompt_contract.py --prompt <rendered-prompt.tx
 ```
 
 Then pass all preflight reports into the review-data builder or preserve them
-through `preflightChecks`. The rendered React report must show provider-fit
+through `preflightChecks`. The rendered static report must show provider-fit
 status, uncertainty, and any red/yellow findings. A red preflight finding does
 not rewrite observed provider output, but it blocks promotion unless Simon
 explicitly accepts the risk.

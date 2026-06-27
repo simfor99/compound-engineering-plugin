@@ -108,9 +108,10 @@ Each autonomous campaign should keep this minimum state:
 ```
 
 `autonomous-run-state.json` should record current status, budget, evaluated
-rounds, latest review URL, stop reason, accepted candidate if any, and failed
-gates. The rendered review packet is the human inspection surface; the promotion
-packet is the implementation handoff.
+rounds, latest static review HTML path, latest review data path, expected cleanup
+receipt path, stop reason, accepted candidate if any, and failed gates. The
+rendered review packet is the human inspection surface; the promotion packet is
+the implementation handoff.
 
 ## CE skill-chain hooks
 

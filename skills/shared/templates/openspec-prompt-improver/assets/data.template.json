@@ -1,0 +1,438 @@
+{
+  "title": "Prompt A/B Review",
+  "kicker": "Prompt Review",
+  "heroTitleHtml": "Prompt A/B Review: <em>A gegen B</em>",
+  "lede": "Review-Oberfläche für System Prompt, User Prompt, Provider-Rückgabe und qualitative Entscheidung.",
+  "evidenceClass": "prompt_ab_review_surface_template",
+  "leftVariantId": "A_current",
+  "defaultCaseId": "example_case",
+  "defaultRightVariant": "B_candidate",
+  "outputTreeDefaultExpanded": "all",
+  "outputTreeDefaultDepth": 6,
+  "outputTreeMaxInitialArrayItems": 25,
+  "jsonFieldRolePatterns": {
+    "name": [
+      "(^|_)(observed_)?name$",
+      "(^|_)(title|label|headline)$",
+      "(^|_)(id|key)$"
+    ],
+    "description": [
+      "description",
+      "summary",
+      "note",
+      "rationale",
+      "explanation",
+      "body",
+      "text$"
+    ],
+    "sources": [
+      "source",
+      "sources",
+      "ref",
+      "refs",
+      "citation",
+      "citations",
+      "url$",
+      "uri$",
+      "href$",
+      "link$"
+    ],
+    "warnings": [
+      "warning",
+      "warnings",
+      "risk",
+      "risks",
+      "error",
+      "errors",
+      "issue",
+      "issues",
+      "failure",
+      "invalid",
+      "mismatch"
+    ],
+    "related": [
+      "related",
+      "relationship",
+      "relationships",
+      "candidate",
+      "candidates",
+      "item",
+      "items",
+      "offering",
+      "offerings",
+      "module",
+      "modules"
+    ],
+    "aliases": [
+      "alias",
+      "aliases",
+      "alternative",
+      "alternatives",
+      "synonym",
+      "synonyms"
+    ]
+  },
+  "links": {
+    "matrix": "../06_comparison-matrix.md"
+  },
+  "recommendation": {
+    "label": "Empfehlung",
+    "title": "Entscheidung offen, bis echte Run-Evidence eingetragen ist.",
+    "body": "Diese Vorlage zeigt die Struktur. Promotion braucht echte Provider-/Runner-Rückgaben, parsebare Outputs, qualitative Bewertung, dokumentierte Risiken und einen konkreten nächsten Schritt."
+  },
+  "goalProgress": {
+    "label": "Stand der Zielerreichung",
+    "title": "Rundenziel offen, bis echte Evidence eingetragen ist.",
+    "summary": "Beschreibt, was die Runde erreichen sollte, ob sie dem Ziel näher kam, was offen bleibt und welcher nächste Schritt sinnvoll ist.",
+    "metrics": [],
+    "items": []
+  },
+  "overallAnalysis": {
+    "label": "Overall-Endurteil",
+    "title": "Gesamtbefund über alle Cases",
+    "summary": "Fasst die Entscheidungslage aus Primary, Guardrails, Monitoring, Assistant Review und Trace-Evidence zusammen.",
+    "metrics": [],
+    "items": []
+  },
+  "decisionScorecard": {
+    "provenance": "derived_from_metric_matrix",
+    "primary": {
+      "status": "neutral",
+      "summary": "Keine Primary-Entscheidung ohne echte A/B-Evidence.",
+      "recommendedVariant": "inconclusive"
+    },
+    "guardrails": {
+      "status": "neutral",
+      "blockingGuardrails": []
+    },
+    "monitoring": {
+      "status": "info",
+      "summary": "Monitoring erklärt Kosten, Laufzeit, Tokens und Output-Länge; es beweist keine Qualität."
+    },
+    "evidenceCompleteness": {
+      "status": "yellow",
+      "summary": "Template-Beispiel: echte Trace-Evidence muss vom Builder eingetragen werden."
+    },
+    "decisionState": {
+      "status": "hitl_required",
+      "summary": "Promotion bleibt HITL."
+    },
+    "reviewerAttention": [
+      "Echte Provider-/Runner-Rückgaben eintragen",
+      "Rote Guardrails vor Promotion prüfen"
+    ]
+  },
+  "traceIntegrity": {
+    "provenance": "template_example",
+    "status": "not_available",
+    "expectedArtifacts": [
+      "request",
+      "renderedPrompt",
+      "rawResponse",
+      "responseText",
+      "parsedOutput",
+      "metrics"
+    ],
+    "summary": "Noch keine echte Trace-Prüfung vorhanden.",
+    "items": []
+  },
+  "hitlDecision": {
+    "provenance": "pending_hitl_decision",
+    "status": "pending",
+    "decision": null,
+    "hitl_required": true
+  },
+  "preflightChecks": {
+    "provenance": "template_example",
+    "status": "neutral",
+    "variants": {},
+    "items": []
+  },
+  "assistant_recommendation": {
+    "provenance": "assistant_recommendation_from_metric_matrix",
+    "recommended_variant": "inconclusive",
+    "recommendation_type": "hitl_required",
+    "confidence": "low",
+    "rationale_short": "Template-Beispiel ohne echte Evidence; HITL-Review nötig.",
+    "blocking_guardrails": [],
+    "hitl_required": true
+  },
+  "notProven": {
+    "label": "Nicht bewiesen",
+    "items": [
+      "workflow_success",
+      "production_readiness",
+      "model_semantic_quality"
+    ]
+  },
+  "copy": {
+    "promptSectionNote": "Links bleibt A. Rechts kann eine B-Variante gewählt werden.",
+    "outputSectionNote": "Provider-Outputs müssen echte Rückgaben oder klar markierte Fixtures sein.",
+    "interpretationSectionNote": "Die qualitative Bewertung trennt Inhalt, Output-Vertrag und Entscheidungsrisiko."
+  },
+  "scorecards": [
+    {
+      "value": "TBD",
+      "label": "Parsebare A-Rückgaben"
+    },
+    {
+      "value": "TBD",
+      "label": "Parsebare B-Rückgaben"
+    },
+    {
+      "value": "TBD",
+      "label": "Schema-valide B-Rückgaben"
+    },
+    {
+      "value": "TBD",
+      "label": "Offene HITL-Entscheidungen"
+    }
+  ],
+  "variants": [
+    {
+      "id": "A_current",
+      "label": "A: aktueller Prompt"
+    },
+    {
+      "id": "B_candidate",
+      "label": "B: Kandidat"
+    }
+  ],
+  "cases": [
+    {
+      "id": "example_case",
+      "companyName": "Beispiel-Case",
+      "results": [
+        {
+          "variantId": "A_current",
+          "variantShortLabel": "A",
+          "variantLabel": "A: aktueller Prompt",
+          "providerRoute": "example_provider",
+          "model": "example_model",
+          "tokenUsage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0
+          },
+          "durationMs": 0,
+          "parsedOk": false,
+          "parseError": "Fixture-Platzhalter: echte Parse-Fehler oder Validierungsergebnisse eintragen.",
+          "metrics": {
+            "schema_ok": false,
+            "related_count": 0,
+            "source_ref_count": 0,
+            "first_party_source_ref_count": 0,
+            "citation_marker_count": 0
+          },
+          "prompt": {
+            "system": "SYSTEM PROMPT A\n\nEchten System Prompt eintragen.",
+            "user": "USER PROMPT A\n\nEchten User Prompt eintragen."
+          },
+          "responseText": "Provider-Rückgabe A eintragen.",
+          "parsedOutput": null,
+          "artifactBase": "../artifacts/cases/example_case__A_current"
+        },
+        {
+          "variantId": "B_candidate",
+          "variantShortLabel": "B",
+          "variantLabel": "B: Kandidat",
+          "providerRoute": "example_provider",
+          "model": "example_model",
+          "tokenUsage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0
+          },
+          "durationMs": 0,
+          "parsedOk": false,
+          "parseError": "Fixture-Platzhalter: echte Parse-Fehler oder Validierungsergebnisse eintragen.",
+          "metrics": {
+            "schema_ok": false,
+            "related_count": 0,
+            "source_ref_count": 0,
+            "first_party_source_ref_count": 0,
+            "citation_marker_count": 0
+          },
+          "prompt": {
+            "system": "SYSTEM PROMPT B\n\nEchten System Prompt eintragen.",
+            "user": "USER PROMPT B\n\nEchten User Prompt eintragen."
+          },
+          "responseText": "Provider-Rückgabe B eintragen.",
+          "parsedOutput": null,
+          "artifactBase": "../artifacts/cases/example_case__B_candidate"
+        }
+      ]
+    }
+  ],
+  "interpretationNotes": {
+    "example_case": {
+      "lede": "Kurz zusammenfassen, was A und B konkret zurückgegeben haben.",
+      "leftTitle": "Warum A fachlich nützlich oder riskant ist",
+      "a": "Konkrete Inhalte aus A zitiernah zusammenfassen. Keine pauschale Bewertung ohne Rückgabe-Bezug.",
+      "rightTitle": "Warum B besser oder schlechter ist",
+      "variants": {
+        "B_candidate": "Konkrete Inhalte aus B zusammenfassen und gegen A abwägen."
+      },
+      "verdict": "Urteil: Entscheidung offen, bis echte Evidence eingetragen ist.",
+      "contentTitle": "Inhalt, der zählt",
+      "content": [
+        "Konkreter Befund 1 aus Provider-Rückgabe oder parsed Output.",
+        "Konkreter Befund 2 aus Provider-Rückgabe oder parsed Output."
+      ],
+      "riskTitle": "Risiko",
+      "risk": "Was kann trotz besserer Struktur fachlich noch falsch sein?",
+      "nextTitle": "Nächster sinnvoller Schritt",
+      "next": "Welche HITL-Entscheidung oder welcher Retest ist jetzt nötig?"
+    }
+  },
+  "assistantEvaluation": {
+    "provenance": "assistant_review",
+    "scale": {
+      "min": 0,
+      "max": 5
+    },
+    "standardNote": "Standardachsen sind Entscheidungshilfe, keine Provider-Metriken.",
+    "contextNote": "Rundenspezifische Achsen werden im Chat vereinbart und aus den konkreten Outputs bewertet.",
+    "standardAxes": [
+      {
+        "id": "schema_contract",
+        "label": "Output-Vertrag",
+        "shortLabel": "Contract",
+        "description": "Bewertet, ob die Rückgabe den vereinbarten Output-Vertrag einhält: parsebar, schema-konform und ohne versteckte Reparatur nutzbar."
+      },
+      {
+        "id": "evidence_quality",
+        "label": "Evidence-Qualität",
+        "shortLabel": "Evidence",
+        "description": "Bewertet, ob die Vergleichsentscheidung auf echter, nachvollziehbarer Evidence ruht: Provider-Rückgaben, Artefakte, Metriken und klare Provenienz."
+      }
+    ],
+    "contextAxes": [
+      {
+        "id": "round_goal_fit",
+        "label": "Runden-Zielfitness",
+        "shortLabel": "Ziel",
+        "description": "Bewertet, ob die Variante das konkrete Ziel dieser Optimierungsrunde trifft. Diese Achse darf je Runde andere inhaltliche Schwerpunkte haben."
+      }
+    ],
+    "cases": {
+      "example_case": {
+        "variants": {
+          "A_current": {
+            "standard": {
+              "schema_contract": 0,
+              "evidence_quality": 0
+            },
+            "context": {
+              "round_goal_fit": 0
+            }
+          },
+          "B_candidate": {
+            "standard": {
+              "schema_contract": 0,
+              "evidence_quality": 0
+            },
+            "context": {
+              "round_goal_fit": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "decisionMetrics": {
+    "label": "Metrik-Auswertung",
+    "title": "Prompt-A/B: Pflichtmetriken im Spinnennetz",
+    "note": "Diese Daten werden vom Builder aus metricMatrix, Provider-Metriken und Trace-Artefakten abgeleitet. Manuelle Texte sind nur Overrides.",
+    "provenance": "assistant_review",
+    "axes": [
+      {
+        "id": "round_goal_fit",
+        "label": "Rundenziel-Fit",
+        "shortLabel": "Ziel",
+        "listLabel": "Rundenziel",
+        "description": "Passt die Variante zum Zweck dieser Runde?"
+      },
+      {
+        "id": "parsed_ok",
+        "label": "Parsebarkeit",
+        "shortLabel": "Parse",
+        "description": "Der Provider-Output ist parsebar."
+      }
+    ],
+    "cases": {
+      "example_case": {
+        "title": "Beispiel-Case: Entscheidungssignale",
+        "note": "Scores sind assistant_review-Entscheidungshilfe, keine Provider-Metrik.",
+        "provenance": "assistant_review",
+        "primarySentences": [
+          {
+            "title": "Rundenziel",
+            "status": "neutral",
+            "text": "Die Variante wird gegen Rundenziel, Guardrails und Trace-Evidence gelesen."
+          }
+        ],
+        "variants": {
+          "A_current": {
+            "scores": {
+              "round_goal_fit": 0,
+              "parsed_ok": 0
+            },
+            "values": {
+              "round_goal_fit": "n/a",
+              "parsed_ok": "nicht parsebar"
+            },
+            "interpretations": {
+              "round_goal_fit": "A wird gegen das Rundenziel gelesen.",
+              "parsed_ok": "A muss ohne Rettungsversuch lesbar sein."
+            }
+          },
+          "B_candidate": {
+            "scores": {
+              "round_goal_fit": 0,
+              "parsed_ok": 0
+            },
+            "values": {
+              "round_goal_fit": "n/a",
+              "parsed_ok": "nicht parsebar"
+            },
+            "interpretations": {
+              "round_goal_fit": "B wird gegen das Rundenziel gelesen.",
+              "parsed_ok": "B muss ohne Rettungsversuch lesbar sein."
+            }
+          }
+        },
+        "guardrails": [],
+        "monitoring": []
+      }
+    }
+  },
+  "iterationPath": [
+    {
+      "type": "evaluation_focus",
+      "status": "example_only",
+      "version": "B1",
+      "variantId": "B_candidate",
+      "title": "HITL-Feedback eintragen",
+      "text": "Wichtige Nutzerhinweise als must_survive, must_reject, evaluation_focus oder investigation_question erfassen.",
+      "impact": "Muss die nächste Runde und die Review-Achsen beeinflussen."
+    }
+  ],
+  "sourceLinks": [
+    {
+      "label": "Experiment-Brief",
+      "href": "../01_experiment-brief.md",
+      "icon": "article"
+    },
+    {
+      "label": "Vergleichsmatrix",
+      "href": "../06_comparison-matrix.md",
+      "icon": "table"
+    },
+    {
+      "label": "Entscheidung",
+      "href": "../07_decision.md",
+      "icon": "fact_check"
+    }
+  ]
+}

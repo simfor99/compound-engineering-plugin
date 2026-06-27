@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate CE Prompt Improver PromptReview data before sharing a React route."""
+"""Validate CE Prompt Improver PromptReview data before rendering static HTML."""
 
 from __future__ import annotations
 
@@ -112,7 +112,7 @@ def validate(data: dict[str, Any], data_path: Path | None = None, require_real_a
     if data_path:
         parts = data_path.parts
         if data_path.name != "data.json" or len(parts) < 3 or parts[-3:] != ("html", "assets", "data.json"):
-            issue(issues, "path", "React review data must end with html/assets/data.json")
+            issue(issues, "path", "static review data must end with html/assets/data.json")
 
     return {
         "status": "pass" if not issues else "fail",

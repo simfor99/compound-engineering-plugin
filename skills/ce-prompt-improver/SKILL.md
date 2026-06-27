@@ -9,9 +9,9 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 # CE Prompt Improver
 
-Create a manual-first CE Prompt Lab for prompt and contract iteration. The skill adapts the proven prompt A/B review pattern to the Compound Engineering chain: `ce-brainstorm` defines the goal, `ce-plan` can shape implementation work after promotion, and `ce-work` only edits production after explicit acceptance. It also supports autonomous candidate-search and pipeline-gate mode when an upstream CE skill supplies a bounded goal, case matrix, provider profile, and stop rules.
+Create a static-review-first CE Prompt Lab for prompt and contract iteration. The skill adapts the proven prompt A/B review pattern to the Compound Engineering chain: `ce-brainstorm` defines the goal, `ce-plan` can shape implementation work after promotion, and `ce-work` only edits production after explicit acceptance. It also supports manual, autonomous candidate-search, and pipeline-gate mode when an upstream CE skill supplies a bounded goal, case matrix, provider profile, and stop rules.
 
-This is a lab skill, not a production wiring shortcut. It helps the user compare baseline and candidate prompts, inspect evidence in a review surface, decide what to promote, and produce a handoff packet for later implementation. Use the included scripts and templates for scaffolding, Review-Data generation, validation, and route creation; do not handcraft a React packet from memory when the scripts can do it.
+This is a lab skill, not a production wiring shortcut. It helps the user compare baseline and candidate prompts, inspect evidence in a static review surface, decide what to promote, and produce a handoff packet for later implementation. Use the included scripts and the shared static Prompt A/B template for scaffolding, Review-Data generation, validation, rendering, and cleanup; do not handcraft a review packet from memory when the scripts can do it.
 
 ## When to Use
 
@@ -70,7 +70,7 @@ smallest missing decision instead of inventing it.
 
 ### 3. Create or resume the lab workspace
 
-Prefer a project-local, inspectable workspace already used by the repo. If the active repo's review route only serves `html/assets/data.json` from specific directories, choose a route-allowed workspace before creating the campaign.
+Prefer a project-local, inspectable workspace already used by the repo. Static review snapshots can render anywhere a local `html/assets/data.json` packet exists, so do not choose a workspace only to satisfy an app route resolver.
 
 If the repo has no convention and no route restriction, use:
 
@@ -78,7 +78,7 @@ If the repo has no convention and no route restriction, use:
 .context/compound-engineering/ce-prompt-improver/<slug>/
 ```
 
-When the active project uses durable daily experiment workspaces, follow that convention instead. Keep scratch state separate from production code. Do not give the user a rendered review route until the chosen workspace is accepted by that route or its data resolver.
+When the active project uses durable daily experiment workspaces, follow that convention instead. Keep scratch state separate from production code. Do not give the user a rendered review snapshot until `html/index.html` exists and the underlying `html/assets/data.json` has passed validation.
 
 Use the scaffolder unless resuming an existing campaign:
 
@@ -159,13 +159,13 @@ Fixture mode is allowed only for script validation and must be labeled as fixtur
 
 Choose a provider profile before the first run. Use `perplexity_sonar` for Perplexity/Sonar/Search/Agent routes, the concrete OpenAI/GPT profile when an OpenAI runtime/model is known, and `generic_llm` with a visible uncertainty note when the route is unknown. Pass the profile into prompt preflight and record the provider-profile artifact in the round. Provider rules are routed evaluation rules, not universal style preferences.
 
-### 6. Build the review surface packet
+### 6. Build the static review surface packet
 
-The review packet must be usable for a rendered A/B comparison. If the active repo has a React review route for prompt A/B surfaces, discover its typed data contract, sample `html/assets/data.json`, or builder/verifier scripts before writing the packet. Do not hand-invent a "compatible" shape from memory.
+The review packet must be usable for a rendered A/B comparison. Use the shared static Prompt A/B template through `scripts/render_review_html.py`; do not add or rely on an app route for CE Prompt Improver review.
 
-For PromptReview-style surfaces, the packet must at least preserve the UI-bearing shape: `variants`, `cases`, each case's `results`, the baseline/right variant identifiers when required, and the decision-support fields below. If the repo exposes builder or trace-verifier scripts, use them and record the commands. If no verifier exists, run the route/data resolver or a local schema check before giving the user the link.
+For PromptReview-style surfaces, the packet must at least preserve the UI-bearing shape: `variants`, `cases`, each case's `results`, the baseline/right variant identifiers when required, and the decision-support fields below. If the repo exposes builder or trace-verifier scripts, use them and record the commands. If no verifier exists, run the local schema check before giving the user the snapshot path.
 
-If the repo does not have a review route, produce the same decision packet plus a Markdown decision summary.
+If the static renderer cannot run, produce the same decision packet plus a Markdown decision summary and label the missing HTML as a tooling failure, not as evidence.
 
 At minimum, the packet should include:
 
@@ -179,37 +179,40 @@ At minimum, the packet should include:
 - HITL decision fields;
 - promotion packet pointer.
 
-For a PromptReview-style React route from real provider/replay evidence, use the OpenSpec-compatible artifact contract first:
+For a static PromptReview-style snapshot from real provider/replay evidence, use the OpenSpec-compatible artifact contract first:
 
 ```bash
 python <skill>/scripts/autonomous_prompt_loop.py --config <campaign>/01_intake/autonomous-loop-config.json
 python <skill>/scripts/normalize_results_summary_from_artifacts.py --results <round>/artifacts/results-summary.raw.json --out <round>/artifacts/results-summary.json
+python <skill>/scripts/preflight_prompt_contract.py --prompt <rendered-prompt.txt> --variant-id <id> --provider-route <route> --out <round>/artifacts/preflight/<case>__<variant>.json
 python <skill>/scripts/build_review_surface_data.py --results <round>/artifacts/results-summary.json --out <round>/html/assets/data.json
 python <skill>/scripts/merge_review_surface_overrides.py --data <round>/html/assets/data.json --overrides <review-enrichment.json> --out <round>/html/assets/data.json
 python <skill>/scripts/verify_review_surface_trace.py --results <round>/artifacts/results-summary.json --data <round>/html/assets/data.json --out <round>/artifacts/trace-integrity-report.json
 python <skill>/scripts/validate_review_data.py <round>/html/assets/data.json --out <round>/artifacts/review-data-validation.json
 python <skill>/scripts/validate_review_data.py <round>/html/assets/data.json --require-real-ab
-python <skill>/scripts/make_review_url.py <round>/html/assets/data.json
+python <skill>/scripts/render_review_html.py <round>/html/assets/data.json
+python <skill>/scripts/open_review_surface.py <round>/html/index.html --print-only
 ```
 
-Run deterministic prompt preflight when rendered prompts exist:
+Run deterministic prompt preflight before the final review-data build whenever rendered prompts exist. If preflight is added after a first draft, rebuild `html/assets/data.json`, re-run validation, and rerender `html/index.html`:
 
 ```bash
 python <skill>/scripts/preflight_prompt_contract.py --prompt <rendered-prompt.txt> --variant-id <id> --provider-route <route> --out <round>/artifacts/preflight/<case>__<variant>.json
 ```
 
-For a PromptReview-style React route from the CE skill's normalized input format, use the lightweight builder:
+For a static PromptReview-style snapshot from the CE skill's normalized input format, use the lightweight builder:
 
 ```bash
 cp <skill>/templates/round-results.template.json <round>/round-results.json
 python <skill>/scripts/build_review_data.py --round-results <round>/round-results.json --out <round>/html/assets/data.json
 python <skill>/scripts/validate_review_data.py <round>/html/assets/data.json --out <round>/artifacts/review-data-validation.json
-python <skill>/scripts/make_review_url.py <round>/html/assets/data.json
+python <skill>/scripts/render_review_html.py <round>/html/assets/data.json
+python <skill>/scripts/open_review_surface.py <round>/html/index.html --print-only
 ```
 
-Read `references/react-review-data-contract.md` before editing `round-results.json`. If manual `data.json` edits are unavoidable, re-run `validate_review_data.py` before sharing the route.
+Read `references/static-review-data-contract.md` before editing `round-results.json`. If manual `data.json` edits are unavoidable, re-run `validate_review_data.py` and rerender `html/index.html` before sharing the snapshot.
 
-Before calling the route an A/B test, also run:
+Before calling the snapshot an A/B test, also run the real-A/B validator. This is necessary but not sufficient: promotion still needs trace integrity, provider preflight, visible source classes, and an honest HITL decision.
 
 ```bash
 python <skill>/scripts/validate_review_data.py <round>/html/assets/data.json --require-real-ab
@@ -226,20 +229,26 @@ If a replayed or imported `results-summary.json` does not byte-match its artifac
 If the rendered review surface is part of the claim, run a local browser smoke and record:
 
 - tool route and runtime class;
-- target URL;
+- target `file://` URI or local path;
 - screenshot path or snapshot evidence;
 - console-error status;
 - cleanup statement for any owned tab/page.
+
+After the user chooses the top variant and the rendered HTML is no longer needed, delete the disposable snapshot while keeping the source evidence:
+
+```bash
+python <skill>/scripts/cleanup_review_html.py <round>/html/index.html --decision <decision>
+```
 
 ### 7. Run HITL promotion
 
 Ask the user to choose one of:
 
-- promote candidate;
-- revise candidate;
-- keep baseline;
-- split the candidate into smaller experiments;
-- stop as inconclusive.
+- `promote_candidate`;
+- `revise_candidate`;
+- `keep_baseline`;
+- `split_candidate`;
+- `inconclusive`.
 
 Do not write production prompt files, schemas, runtime parsers, or dashboard consumers from the lab alone. Promotion creates a packet for `ce-plan` or `ce-work`; implementation is a separate step with its own evidence.
 
@@ -248,7 +257,7 @@ budget remains and the next round can improve a failed gate with one bounded
 lever. Stop immediately when a hard gate fails in a way the lab cannot repair,
 the candidate passes promotion threshold, or the budget is exhausted. Then write
 either a promotion packet or an inconclusive packet and expose the rendered
-review URL with round navigation for every attempted iteration.
+static review snapshot with round navigation for every attempted iteration.
 
 ### 8. Produce the promotion packet
 
@@ -268,7 +277,7 @@ When the user accepts a candidate, write a compact handoff under `05_promotion-p
 - Manual lab workflow: `references/manual-lab-workflow.md`
 - CE skill-chain integration: `references/ce-skillchain-integration.md`
 - Autonomous A/B testing: `references/autonomous-ab-testing.md`
-- React review data contract: `references/react-review-data-contract.md`
+- Static review data contract: `references/static-review-data-contract.md`
 - Provider best-practice routing: `references/provider-best-practice-routing.md`
 - Workspace and daily-room guard: `references/workspace-and-daily-room-guard.md`
 - Round-results template: `templates/round-results.template.json`
@@ -282,7 +291,8 @@ When the user accepts a candidate, write a compact handoff under `05_promotion-p
 - Review data validator: `scripts/validate_review_data.py`
 - Review trace verifier: `scripts/verify_review_surface_trace.py`
 - Review enrichment merger: `scripts/merge_review_surface_overrides.py`
-- Review URL helper: `scripts/make_review_url.py`
+- Static review renderer: `scripts/render_review_html.py`
+- Static review cleanup helper: `scripts/cleanup_review_html.py`
 - OpenSpec-compatible lab runner: `scripts/lab_runner.py`
 - Provider lab runner: `scripts/provider_lab_runner.py`
 - Prompt preflight: `scripts/preflight_prompt_contract.py`

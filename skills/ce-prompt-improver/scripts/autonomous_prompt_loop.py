@@ -305,15 +305,37 @@ def schema_failures(data: dict[str, Any], variant_id: str) -> list[str]:
     return failures
 
 
-def make_review_url(data_path: Path, repo_root: Path) -> str | None:
+def render_review_html(data_path: Path, repo_root: Path) -> str | None:
     result = run_command(
-        [sys.executable, str(SCRIPT_DIR / "make_review_url.py"), str(data_path), "--repo-root", str(repo_root)],
+        [sys.executable, str(SCRIPT_DIR / "render_review_html.py"), str(data_path)],
         cwd=repo_root,
         allow_failure=True,
     )
     if result.returncode:
         return None
     return result.stdout.strip() or None
+
+
+def render_review_html_issue(data_path: Path, repo_root: Path) -> dict[str, Any]:
+    result = run_command(
+        [sys.executable, str(SCRIPT_DIR / "render_review_html.py"), str(data_path)],
+        cwd=repo_root,
+        allow_failure=True,
+    )
+    if result.returncode == 0:
+        return {"path": result.stdout.strip() or None, "issue": None}
+    message = (result.stderr.strip() or result.stdout.strip() or "html/index.html could not be rendered from html/assets/data.json")
+    return {
+        "path": None,
+        "issue": {
+            "message": message,
+            "exit_code": result.returncode,
+        },
+    }
+
+
+def review_html_cleanup_receipt(round_dir: Path) -> Path:
+    return round_dir / "artifacts" / "review-html-cleanup.json"
 
 
 def run_preflight(result: dict[str, Any], case_id: str, variant_id: str, provider_route: str, out_dir: Path, repo_root: Path) -> Path | None:
@@ -561,6 +583,8 @@ def build_round(
     trace_report = load_report_or_failure(trace_report_path, "trace_integrity", trace_result)
     validation = load_report_or_failure(validation_path, "review_data_validation", validation_result)
     real_report = load_report_or_failure(real_validation_path, "real_ab_validation", real_validation)
+    review_render = render_review_html_issue(data_path, repo_root)
+    review_html_path = review_render["path"]
     promotion = dict(config.get("promotion") or {})
     candidate_id = str(candidate["id"])
     baseline_id = str(baseline["id"])
@@ -573,6 +597,8 @@ def build_round(
     schema_policy = config_gate_policy(promotion.get("requireSchemaOk"), default=True, field="requireSchemaOk")
     trace_policy = config_gate_policy(promotion.get("requireTraceIntegrity"), default=True, field="requireTraceIntegrity")
     failures: list[dict[str, Any]] = []
+    if not review_html_path:
+        failures.append({"gate": "static_review_render", "status": "fail", "issues": [review_render["issue"]]})
     if validation.get("status") != "pass":
         failures.append({"gate": "review_data_validation", "status": validation.get("status"), "issues": validation.get("issues")})
     if real_ab_policy in NON_PASSING_GATE_POLICIES:
@@ -603,7 +629,8 @@ def build_round(
         "lever": round_spec.get("lever") or candidate.get("description") or candidate_id,
         "roundDir": str(round_dir),
         "dataPath": str(data_path),
-        "reviewUrl": make_review_url(data_path, repo_root),
+        "reviewHtmlPath": review_html_path,
+        "reviewHtmlCleanupReceipt": str(review_html_cleanup_receipt(round_dir)),
         "resultsSummary": str(normalized_summary_path),
         "traceReport": str(trace_report_path),
         "validationReport": str(validation_path),
@@ -650,6 +677,8 @@ def rebuild_with_final_navigation(state: dict[str, Any], repo_root: Path) -> Non
         for preflight_path in preflight_paths:
             build_command.extend(["--preflight", str(preflight_path)])
         run_command(build_command, cwd=repo_root)
+        item["reviewHtmlPath"] = render_review_html(data_path, repo_root)
+        item["reviewHtmlCleanupReceipt"] = str(review_html_cleanup_receipt(Path(str(item["roundDir"]))))
 
 
 def write_decision_packet(config: dict[str, Any], state: dict[str, Any], campaign_dir: Path) -> Path:
@@ -660,7 +689,7 @@ def write_decision_packet(config: dict[str, Any], state: dict[str, Any], campaig
     accepted_delta = (
         f"Accepted candidate `{accepted.get('candidateId')}` from `{accepted.get('id')}`."
         if accepted
-        else "No candidate accepted. See failed gates and review URL."
+        else "No candidate accepted. See failed gates and review HTML."
     )
     lines = [
         "# Prompt promotion packet",
@@ -690,7 +719,9 @@ def write_decision_packet(config: dict[str, Any], state: dict[str, Any], campaig
             "## Evidence gathered",
             "",
             f"- Rounds executed: {len(state.get('rounds') or [])}",
-            f"- Final review URL: {state.get('latestReviewUrl') or 'not_available'}",
+            f"- Final review HTML: {state.get('latestReviewHtmlPath') or 'not_available'}",
+            f"- Final review data: {state.get('latestReviewDataPath') or 'not_available'}",
+            f"- Review HTML cleanup receipt: {state.get('latestReviewHtmlCleanupReceipt') or 'not_available'}",
             f"- Autonomous state: `{campaign_dir / 'autonomous-run-state.json'}`",
             "",
             "## What this proves",
@@ -764,7 +795,9 @@ def run_loop(config_path: Path, repo_root: Path, allow_fixture: bool, max_rounds
                 allow_fixture=allow_fixture,
             )
             state["rounds"].append(round_result)
-            state["latestReviewUrl"] = round_result.get("reviewUrl")
+            state["latestReviewHtmlPath"] = round_result.get("reviewHtmlPath")
+            state["latestReviewDataPath"] = round_result.get("dataPath")
+            state["latestReviewHtmlCleanupReceipt"] = round_result.get("reviewHtmlCleanupReceipt")
             state["updatedAt"] = utc_now()
             write_json(campaign_dir / "autonomous-run-state.json", state)
             if round_result["accepted"]:

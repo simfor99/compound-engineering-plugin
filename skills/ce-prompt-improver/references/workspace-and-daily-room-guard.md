@@ -14,7 +14,7 @@ Use one of these, in order:
 ## Forbidden behavior
 
 - Do not create `docs/todo/<today>/` just because the current date exists.
-- Do not claim a React route will render if the active resolver only accepts `docs/todo/**/html/assets/data.json` and the packet is outside `docs/todo`.
+- Do not claim a static review snapshot will render until `html/index.html` exists and the packet at `html/assets/data.json` validates.
 - Do not silently move lab artifacts between daily rooms.
 
 The scaffold script enforces this by never deriving a `docs/todo` directory from today's date.
