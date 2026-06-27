@@ -35,6 +35,71 @@ git rev-parse --show-superproject-working-tree
 - **Non-empty** output -> you are in a submodule; treat it as a normal checkout and continue to Step 1.
 - **Empty** output -> you are **already in an isolated worktree**. Report the worktree path (`git rev-parse --show-toplevel`) and current branch, and **work in place**. Do not create another worktree — a worktree-from-worktree lands in the wrong tree and is invisible to the harness that made the current one.
 
+#### Worktree Local Environment Mirror Guard
+
+Every CE-managed worktree must be treated as code-isolated but
+runtime-equivalent to the source checkout. Git only copies tracked files, so
+the skill must mirror local, ignored runtime configuration before any runtime
+work. This is setup work, not evidence: never print secret values, and never
+commit or stage mirrored env files.
+
+Default policy:
+
+1. Identify the source checkout before creating or entering a worktree:
+   - Git fallback: the current repo root before `git worktree add`.
+   - Native harness worktree: the checkout path reported by the harness, or the
+     previous repo root if the harness does not report one.
+   - Existing linked worktree: prefer the non-current root from
+     `git worktree list --porcelain`; if the path clearly lives under
+     `<repo>/.worktrees/<name>`, use `<repo>` as the source root.
+2. Mirror these repo-root files when they exist in the source and are absent in
+   the target: `.env`, `.env.local`, `.env.development`,
+   `.env.development.local`, `.env.test`, `.env.test.local`,
+   `.env.production`, `.env.production.local`.
+3. Prefer symlinks from target to source (`local_symlink`). This keeps one
+   secret copy, follows source updates, and avoids stale env drift.
+4. Before creating any symlink or copied env file, verify the target path is
+   ignored or explicitly untracked-safe:
+
+   ```bash
+   git check-ignore -q .env .env.local .env.development .env.development.local .env.test .env.test.local .env.production .env.production.local
+   ```
+
+   If a source env file would not be ignored at the target, stop and report
+   `blocked_missing_ignore_rule`; do not create a committable secret file.
+5. Never overwrite an existing target env file or symlink. If it differs from
+   the source, report `env_drift_detected` with paths and presence/type only.
+6. Copy (`repo_env_file`) only when symlinks are not supported, the user
+   explicitly requested a copy, or a tool cannot read symlinked env files. A
+   copied env file must still be ignored and must be reported as a duplicate
+   secret-bearing file.
+7. If the source checkout has no local env file for a required runtime path,
+   keep the runtime gate blocked instead of inventing placeholders.
+8. Do not copy `node_modules`, build outputs, caches, browser profiles, trace
+   stores, or unrelated ignored directories. Recreate dependencies with the
+   package manager when needed. If the repo uses Git submodules or documented
+   sibling checkouts, initialize or verify those through their normal commands;
+   do not manually duplicate directories.
+
+Minimum setup command shape for a known `source_root` and `target_root`:
+
+```bash
+for env_file in .env .env.local .env.development .env.development.local .env.test .env.test.local .env.production .env.production.local; do
+  [ -e "$source_root/$env_file" ] || continue
+  [ ! -e "$target_root/$env_file" ] || continue
+  (cd "$target_root" && git check-ignore -q "$env_file") || {
+    echo "blocked_missing_ignore_rule $env_file"
+    continue
+  }
+  ln -s "$source_root/$env_file" "$target_root/$env_file"
+done
+```
+
+Report the result as paths and source class only, for example:
+`env source class: local_symlink; linked: .env, .env.local; source:
+/path/to/main-checkout`. Do not show key names here unless the later runtime
+preflight requires missing-key diagnostics, and never show values.
+
 #### Worktree Runtime Environment And Server Guard
 
 When the worktree will run a local server, browser test, workflow, auth path,
@@ -84,12 +149,13 @@ starting a server, opening a browser, or claiming live evidence:
    endpoint is not exercised, label the browser session as UI-only or mocked.
 10. The handoff must include the env source class (`repo_env_file`,
    `main_checkout_env_source`, `local_symlink`, `explicit_export`,
-   `dummy_mock_env`, or `blocked_missing_env`), the server path/port, and the
-   evidence class claimed.
+   `dummy_mock_env`, `blocked_missing_env`, or
+   `blocked_missing_ignore_rule`), the server path/port, and the evidence
+   class claimed.
 
 ## Step 1: Prefer the harness's native worktree tool
 
-If the harness provides a native worktree primitive — for example an `EnterWorktree` / `WorktreeCreate` tool, a `/worktree` command, or a `--worktree` flag — use it only after the branch consent guard approves the exact branch/worktree shape, then stop. Native tools place, track, and clean up the worktree so the harness can manage it. A behind-the-back `git worktree add` creates phantom state the harness cannot see, navigate to, or clean up.
+If the harness provides a native worktree primitive — for example an `EnterWorktree` / `WorktreeCreate` tool, a `/worktree` command, or a `--worktree` flag — use it only after the branch consent guard approves the exact branch/worktree shape, then run the Worktree Local Environment Mirror Guard for the new/entered worktree. Native tools place, track, and clean up the worktree so the harness can manage it. A behind-the-back `git worktree add` creates phantom state the harness cannot see, navigate to, or clean up.
 
 External worktree pool managers such as Treehouse are not the default for this
 CE skill. Use them only when the user explicitly asks for that tool, when a
@@ -107,6 +173,10 @@ Only when there is no native tool **and** Step 0 found no existing isolation.
 4. Best-effort refresh the base branch without disturbing the current checkout: `git fetch origin <from-branch>`. This is **non-fatal** — if it errors (no `origin` remote, a differently-named remote, or a local-only branch), do not abort; continue to the next step and use the local ref.
 5. Create the worktree from the remote base when available, else the local ref: `git worktree add -b <branch-name> .worktrees/<branch-name> origin/<from-branch>`. If `origin/<from-branch>` does not exist, use the local `<from-branch>` ref instead.
 6. Switch into it: `cd .worktrees/<branch-name>`.
+7. Run the Worktree Local Environment Mirror Guard from the source checkout
+   captured before creation to the new worktree root. Prefer symlinking
+   `.env*` files, report only paths/source class, and stop before runtime if a
+   required local env file cannot be mirrored safely.
 
 If `git worktree add` fails with a sandbox or permission error, the requested isolation could not be created. This needs a **blocking** user decision before touching the current checkout — do not silently continue there (the user chose isolation specifically to avoid it, especially when `ce-work` / `ce-code-review` routed here for the worktree option). Report the failure and ask via the platform's blocking question tool: `AskUserQuestion` in Claude Code (call `ToolSearch` with `select:AskUserQuestion` first if its schema isn't loaded), `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (via the `pi-ask-user` extension) — offering options such as "work in the current checkout" vs "stop and resolve the permission issue". If no blocking tool exists in the harness or the call errors, present the numbered options in chat and wait for the reply; never skip the confirmation. Only work in the current checkout on explicit confirmation, and do not retry alternative paths automatically.
 

@@ -39,7 +39,7 @@ Never skip forward in the sequence:
 | Delete | What part, process step, field, hook, agent, or claim can disappear? | Optimizing unnecessary complexity. |
 | Simplify | Can the kept part become smaller, clearer, or more direct? | Preserving accidental structure. |
 | Accelerate | Is the remaining loop stable enough to make faster? | Speeding up churn or rework. |
-| Automate | Is the remaining process understood and repeatable? | Automating a brittle workaround. |
+| Automate | Is the remaining process understood, repeatable, stoppable, evidenced, and reversible? | Automating a brittle workaround. |
 
 If a later step looks attractive, first state why the earlier steps are already
 satisfied or not applicable.
@@ -57,6 +57,8 @@ Use this as a requirements and scope-subtraction guard:
   expandable work;
 - avoid writing requirements for process steps, agents, fields, or automation
   that only exist to support an untested solution shape;
+- when automation remains in scope, capture the stop condition, evidence claim,
+  and rollback or de-automation path that make it safe to plan;
 - record real user-owned scope decisions in the decision/assumption ledger
   instead of silently deleting them.
 
@@ -72,6 +74,8 @@ Use this as an implementation-subtraction guard:
   orchestration improvements;
 - require a clear reason before planning automation, agent dispatch,
   parallelization, or reusable process machinery;
+- for planned automation, name the stop condition, evidence gate, and rollback
+  or de-automation path before treating it as implementation-ready;
 - preserve requirements traceability when deleting scope: deletion must be a
   deliberate scope decision, not an accidental drop.
 
@@ -83,7 +87,8 @@ Use this lightly during execution:
 - do flag a plan-risk if implementation reveals that a unit mainly supports
   avoidable complexity;
 - do not add automation, scripts, subagents, or broad parallelism unless the
-  remaining process is stable enough to benefit from it.
+  remaining process is stable enough to benefit from it and has a visible stop
+  condition, evidence gate, and rollback or de-automation path.
 
 ### `ce-compound`
 
@@ -102,6 +107,7 @@ Requirement check: <kept/reframed/deferred>
 Deleted or avoided: <part/process/scope/automation, or none with reason>
 Simplified before speed/automation: <yes/no/not_applicable>
 Automation stance: <not_needed/deferred/planned_with_reason>
+Automation safety: <stop_condition/evidence_gate/rollback_path, or not_applicable>
 ```
 
 For lightweight work, a one-line note is enough. For Standard or Deep
@@ -117,3 +123,5 @@ approach rationale, implementation units, or deferred follow-up work.
   observability are good when their carrying cost is low and their value is
   clear.
 - Automation is not bad. Premature automation is the failure mode.
+- A safe automation path is stoppable, evidenced, and reversible; without those
+  properties it stays deferred rather than silently becoming scope.

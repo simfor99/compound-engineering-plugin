@@ -13,6 +13,8 @@
 - Prefer `gated_auto` when you can write a defensible `suggested_fix` for a localized change.
 - Use `manual` when the right fix depends on product intent, architecture, or cross-cutting refactors.
 - Use `advisory` when nothing breaks if left unfixed but the observation has value.
+- Route context-mismatched or overweight concerns to `advisory` only when they are useful for the report; suppress them entirely when the proposed fix would add more surface than the current risk justifies.
+- Keep the proposed action to the smallest adequate fix. A localized guard, deletion, contract correction, or focused test beats a new abstraction, framework, policy layer, monitor, retry, cache, queue, or process unless the broader surface is required by a concrete failure path.
 - Do **not** emit `safe_auto` — callers decide what to apply; reviewers classify and propose.
 
 ## Owner field

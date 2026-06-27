@@ -2,7 +2,7 @@
 
 ## Phase 3: Synthesize Findings
 
-Process findings from all agents through this pipeline. Order matters — each step depends on the previous. The pipeline implements the finding-lifecycle state machine: **Raised → (Confidence Gate | FYI-eligible | Dropped) → Deduplicated → Classified → SafeAuto | GatedAuto | Manual | FYI**. Re-evaluate state at each step boundary; do not carry forward assumptions from earlier steps as prose-level shortcuts.
+Process findings from all agents through this pipeline. Order matters — each step depends on the previous. The pipeline implements the finding-lifecycle state machine: **Raised → Validated → (Relevance Gate | FYI-eligible | Dropped) → (Confidence Gate | FYI-eligible | Dropped) → Deduplicated → Classified → SafeAuto | GatedAuto | Manual | FYI**. Re-evaluate state at each step boundary; do not carry forward assumptions from earlier steps as prose-level shortcuts.
 
 ### 3.1 Validate
 
@@ -13,6 +13,100 @@ Check each agent's returned JSON against the findings schema:
 - Note the agent name for any malformed output in the Coverage section
 
 **Do not narrate remap / validation diagnostics to the user.** Schema-drift notes ("persona X returned unknown enum Y, remapped to Z"), persona-prompt-drift commentary, and other validator-internal diagnostics are maintainer-facing information. They do not belong in the Phase 4 output the user reads. If a persona's output is malformed, the only user-visible consequence is a Coverage-row annotation (e.g., the persona shows fewer findings or a `malformed` marker). Everything else stays internal.
+
+### 3.1b General Finding Relevance & Subtraction Gate
+
+Apply this gate to every schema-valid finding before confidence gating. This is
+the ce-doc-review specialization of the Elons Principles order-of-operations
+guard: requirement check, delete, simplify, and only then consider speed,
+automation, hardening, or process.
+
+Core rule: **a finding is not actionable merely because it is true. It is
+actionable only when the smallest adequate fix improves the current document's
+target outcome more than it increases carrying cost.**
+
+**Step 1: Infer the current target context.** Use only evidence available in the
+document, `Origin:`, active guard brief, prior decisions, and clearly established
+repo context. Do not invent production, public exposure, team size, compliance,
+scale, or release posture. When unclear, mark the context `unknown` rather than
+assuming the largest-risk environment. Track these dimensions mentally during
+synthesis:
+
+- target outcome: what this document is trying to enable now;
+- maturity: exploration, requirements, implementation plan, ship-ready,
+  production-hardening, or unknown;
+- exposure: local/private, internal, authenticated, public, external
+  side-effect, or unknown;
+- data and side effects: fixture/test data, internal data, customer/PII,
+  secrets/credentials, payments, durable writes, irreversible actions, or none;
+- scope boundaries and non-goals explicitly stated by the document or origin.
+
+**Step 2: Requirement check.** For each finding, ask whether the requirement it
+implies is actually required by the current target context. Examples of implied
+requirements: production security controls, release governance, durable audit
+evidence, migration rollback, reusable abstractions, team workflow, exhaustive
+case matrices, model/provider evaluation, monitoring, or automation.
+
+- If yes, keep evaluating the finding.
+- If no, route by Step 3 instead of letting severity/confidence make it
+  actionable.
+- If unknown, prefer FYI over actionable unless the finding names a concrete
+  consequence that implementers will hit in the current document.
+
+**Step 3: Delete, defer, or FYI context-mismatched findings.**
+
+- Drop silently when the finding depends on a context the document does not
+  claim and adds no useful caveat for the reader. This includes theoretical
+  production, scale, governance, compliance, or security concerns for local-only
+  development, throwaway exploration, fixture-only work, one-off maintenance, or
+  explicitly deferred scope.
+- Demote to anchor `50` / FYI when the observation is true and useful as a
+  boundary note, but not a decision for this round. Phrase it as contextual:
+  "Relevant if this becomes public/production/shared/reused," not "must fix."
+- Keep actionable only when the current target context makes the issue
+  necessary now: public or authenticated endpoints, real users, customer/PII,
+  secrets, payments, durable remote mutations, production/staging claims,
+  accepted evidence obligations, downstream contracts, or implementation steps
+  that would be wrong without the fix.
+
+**Step 4: Simplify surviving fixes.** For findings that survive as actionable,
+check the `suggested_fix` against the smallest adequate fix:
+
+- If the fix adds extra process, new gates, abstractions, agents, automation,
+  artifacts, fields, or policies beyond what resolves the issue, trim the fix to
+  the smallest adequate wording before applying/presenting it.
+- If the finding is real but the proposed fix is overbuilt and cannot be safely
+  trimmed, downgrade the finding to `manual` or FYI and explain the tradeoff in
+  `why_it_matters`.
+- Do not promote a finding to `safe_auto` or `gated_auto` when the fix's main
+  value is "more professional," "more complete," "future-proof," or "enterprise
+  ready" without a current-context need.
+
+**Step 5: Domain-agnostic examples.** Apply the same standard to all personas:
+
+- Security: production/public-server hardening is not actionable for a local
+  development-only tool unless secrets, real users, durable remote writes, or a
+  planned deploy path are in scope.
+- Evidence: not every claim needs a new artifact; require evidence only when a
+  downstream decision, readiness claim, handoff, or accepted gate depends on it.
+- Feasibility/reliability: not every possible failure mode needs a new guard;
+  require the guard when the failure is reachable in the current flow and would
+  change execution.
+- Architecture: repeated shape does not justify an abstraction unless the
+  current work benefits from reuse, boundary clarity, or reduced complexity.
+- Scope/product: not every doubt needs a strategic decision; route as FYI when
+  the uncertainty does not block the current target outcome.
+- Governance/process: do not add rituals, ledgers, or workflows just because a
+  larger team would need them.
+
+**Coverage accounting.** Record non-zero counts beneath the Coverage table:
+
+- `Context FYI: N (true but not actionable for current target context)`
+- `Subtracted: N (context-mismatched or overbuilt findings suppressed)`
+- `Simplified: N (suggested fixes trimmed to smallest adequate fix)`
+
+These lines are maintainer/user signal, not per-finding diagnostics. Do not
+over-explain dropped findings in the main report.
 
 ### 3.2 Confidence Gate (Anchor-Based)
 
@@ -236,11 +330,13 @@ For every `residual_risk` and `deferred_question` across all persona outputs, ch
 
 Do NOT drop residual/deferred items that introduce genuinely new signal (a concern or question the actionable findings do not touch). When in doubt, keep — this pass is for obvious restatements, not borderline calls.
 
-Run this pass on the merged set across all personas. Record the count dropped as a Coverage footnote line when non-zero: `Restated: N (residual/deferred items suppressed as duplicates of actionable findings)`. Ordering: footnotes appear in the sequence `Dropped:`, `Chains:`, `Restated:` below the Coverage table, each on its own line. Omit any footnote whose count is zero.
+Run this pass on the merged set across all personas. Record the count dropped as a Coverage footnote line when non-zero: `Restated: N (residual/deferred items suppressed as duplicates of actionable findings)`. Ordering: footnotes appear in the sequence `Context FYI:`, `Subtracted:`, `Simplified:`, `Dropped:`, `Chains:`, `Restated:` below the Coverage table, each on its own line. Omit any footnote whose count is zero.
 
 ## Phase 4: Apply and Present
 
-**User-facing vocabulary rule (applies to ALL user-visible output in Phase 4, not just the rendered template).** Internal enum values — `safe_auto`, `gated_auto`, `manual`, `FYI` — stay inside the schema and synthesis prose. Every word the user sees in Phase 4 output, including free-text narration between sections, transition preambles, status lines, and confirmation messages, MUST use user-facing vocabulary: "fixes" (for `safe_auto`), "proposed fixes" (for `gated_auto`), "decisions" (for `manual` findings at anchor `75` or `100`), "FYI observations" (for any finding at anchor `50`). The only exception is the `Tier` column in rendered tables, which is explicitly documented as surfacing the internal enum for transparency. Do NOT emit narration like "safe_auto fixes applied" or "N safe_auto findings" — write "fixes applied" or "N fixes" instead.
+**User-facing vocabulary and language rule (applies to ALL user-visible output in Phase 4, not just the rendered template).** Render visible prose in the user's conversation language. For Simon, use German with real Umlaute and `ß`. Internal enum values — `safe_auto`, `gated_auto`, `manual`, `FYI` — stay inside the schema and synthesis prose. Every word the user sees in Phase 4 output, including free-text narration between sections, transition preambles, status lines, table columns, and confirmation messages, MUST use user-facing vocabulary: "direct fixes" / `direkt erledigt` (for `safe_auto`), "proposed fixes" / `vorgeschlagene Änderungen` (for `gated_auto`), "decisions" / `Entscheidungen` (for `manual` findings at anchor `75` or `100`), "FYI observations" / `Zur Info` (for any finding at anchor `50`). Do NOT emit narration like "safe_auto fixes applied", "N safe_auto findings", `gated_auto`, `manual`, or a visible `Tier` column. Use a plain-language `Next step` / `Nächster Schritt` column instead.
+
+**CEO-first point wording (applies to summary tables, headless envelopes, walk-through blocks, completion reports, and bulk previews).** User-visible finding/action descriptions must start with the concrete human or business consequence in plain language. Technical identifiers, schema fields, route names, file paths, component IDs, enum values, or implementation verbs may appear only after that in a short parenthetical such as `(technically: ...)` / `(technisch: ...)`. The plain-language clause must stand on its own if the parenthetical is deleted. Do not surface raw one-line fixes like `customer_job_lane je required CB-Row ergänzen` as the primary explanation.
 
 ### Apply safe_auto fixes
 
@@ -257,9 +353,59 @@ List every applied fix in the output summary so the user can see what changed. U
 
 After safe_auto fixes apply, remaining findings split into buckets:
 
-- `gated_auto` and `manual` findings at confidence anchor `75` or `100` → enter the routing question (see Unit 5 / `references/walkthrough.md`)
+- `gated_auto` findings at confidence anchor `75` or `100` → enter the routing question (see Unit 5 / `references/walkthrough.md`)
+- `manual` findings at confidence anchor `75` or `100` that do not require CEO decision → enter the routing question
+- `manual` findings at confidence anchor `75` or `100` that require CEO decision → enter the CEO decision gate before any routing or bulk action may resolve them
 - FYI-subsection findings → surface in the presentation only, no routing
 - Zero actionable findings remaining → skip the routing question; flow directly to Phase 5 terminal question
+
+### CEO Decision Gate
+
+Some document-review findings are not merely document hygiene. When a surviving
+`manual` finding would change product direction, architecture, governance,
+scope, cost, release posture, risk acceptance, security posture, evidence
+standards, prompt/runtime contracts, or future team workflow, classify it as
+`requires_ceo_decision`.
+
+Signals include:
+
+- product-lens, scope-guardian, adversarial, security-lens, or
+  evidence-coverage findings whose `why_it_matters` changes what should be
+  built, deferred, accepted as risk, or treated as ready;
+- findings involving explicit strategy markers such as `CEO decision`,
+  `open question`, `scope`, `governance`, `promotion`, `readiness`, `risk`,
+  `architecture`, `shared core`, `adoption`, or equivalent domain wording;
+- any finding where the proposed fix would silently choose between multiple
+  plausible product, architecture, governance, or risk paths.
+- any "Open Questions" / Defer recommendation whose substance is an actual
+  product, architecture, governance, risk, evidence-standard, or runtime
+  contract choice rather than a simple follow-up note. A real decision may be
+  recorded in Open Questions after the chat decision, but Open Questions is not
+  the decision surface. Marker phrase: `Open Questions is not the decision surface`.
+
+Interactive mode must not bury these findings only in an Open Questions section
+or resolve them through top-level best judgment. Before routing option B,
+option C, or a per-finding Apply/Defer/Skip can dispose of such a finding, the
+orchestrator must pause and present the CEO decision template from the active
+project instructions or `~/.codex/references/ceo-entscheidungen.md`, one
+decision per assistant response. The user-facing report may still list the
+finding under "Decisions", but it must mark it as `CEO decision required` and
+state that chat resolution is required before implementation-ready claims.
+
+Best-judgment / proposal-package behavior: exclude `requires_ceo_decision`
+findings from the bulk Apply/Defer/Skip plan and surface them in a separate
+`CEO decisions required (N)` bucket. The agent may apply non-strategic proposed
+fixes in the same run, but strategic decisions remain pending until the CEO
+flow completes.
+
+Append-to-Open-Questions behavior: appending a CEO-required finding to the
+document is allowed only as an audit trail after the chat decision has been
+asked or explicitly declined by the user. It is not a substitute for the chat
+decision.
+
+Headless mode: include a `CEO decisions required` section in the envelope and
+mark those findings `requires_ceo_decision`; do not claim review completion as
+implementation-ready while this section is non-empty.
 
 **Headless mode:** Do not use interactive question tools. Output all findings as a structured text envelope the caller can parse. Internal enum values (`safe_auto`, `gated_auto`, `manual`, `FYI`) stay in the schema and synthesis prose; the envelope below uses user-facing vocabulary — "fixes", "Proposed fixes", "Decisions", "FYI observations" — so headless output reads the same way interactive output does.
 
@@ -281,6 +427,7 @@ Decisions (requires user judgment):
 [P1] Section: <section> — <title> (<reviewer>, confidence <anchor>)
   Why: <why_it_matters>
   Suggested fix: <suggested_fix or "none">
+  CEO decision required: <yes|no>
 
   Dependents (would resolve if this root is rejected):
     [P2] Section: <section> — <title> (<reviewer>, confidence <anchor>)
@@ -300,6 +447,9 @@ Deferred questions:
 - <question> (<source>)
 
 Dropped: N (anchors 0/25 suppressed)
+Context FYI: N (true but not actionable for current target context)
+Subtracted: N (context-mismatched or overbuilt findings suppressed)
+Simplified: N (suggested fixes trimmed to smallest adequate fix)
 Chains: N root(s) with M dependents
 Restated: N (residual/deferred items suppressed as duplicates of actionable findings)
 
@@ -314,12 +464,30 @@ Omit any section with zero items. The section headers reflect user-facing vocabu
 
 Present findings using the review output template (read `references/review-output-template.md`). Within each severity level, separate findings by type:
 
-- Errors (design tensions, contradictions, incorrect statements) first — these need resolution
-- Omissions (missing steps, absent details, forgotten entries) second — these need additions
+- Errors / German `Fehler/Widersprüche` (design tensions, contradictions, incorrect statements) first — these need resolution
+- Omissions / German `Lücken` (missing steps, absent details, forgotten entries) second — these need additions
 
-Brief summary at the top: "Applied N fixes. K items need attention (X errors, Y omissions). Z FYI observations."
+Brief summary at the top in the user's language. English shape: "Applied N fixes. K items need attention (X errors, Y omissions). Z FYI observations." German shape: "Direkt erledigt: N. Braucht Aufmerksamkeit: K (X Fehler/Widersprüche, Y Lücken). Zur Info: Z."
+
+Before the first actionable table, add the compact explanatory legend from `references/review-output-template.md` so non-developer users understand "error", "omission", confidence anchors, and next-step buckets without knowing the internal schema.
 
 Include the Coverage table, applied fixes, FYI observations (as a distinct subsection), residual concerns, and deferred questions.
+
+When any finding is marked `requires_ceo_decision`, include a distinct
+`CEO decisions required` subsection before the routing question. The subsection
+lists each decision title, section, reviewer, and one-line consequence. Then
+pause the normal routing flow and ask the first CEO decision in the project
+CEO-decision format. Do not proceed to routing, best-judgment bulk apply, or
+Open-Questions-only handling for these findings until the user has answered or
+explicitly declines CEO handling.
+
+The CEO gate is the next user interaction, not a teaser. The same assistant
+response that announces `CEO decisions required` must present the first CEO
+decision template and end with the project decision prompt. Do not emit only a
+preview such as `Next finding: ...` or `Next CEO decision: ...` and wait for the
+user to request the actual decision. If there are multiple CEO-required
+findings, ask decision 1 immediately and continue one decision per subsequent
+user response.
 
 **All tables MUST be pipe-delimited markdown (`| col | col |`). Do NOT use ASCII box-drawing characters (`┌ ┬ ┐ ├ ┼ ┤ └ ┴ ┘ │ ─`) under any circumstances, including for the Coverage table.** This rule restates the template's formatting requirement at the point of rendering so it cannot drift. Pipe-delimited tables render correctly across all target harnesses; box-drawing characters break rendering in some and violate the repo convention documented in root `AGENTS.md`.
 
@@ -367,25 +535,52 @@ These are pipeline artifacts and must not be flagged for removal.
 
 **Headless mode:** Return "Review complete" immediately. Do not ask questions. The caller receives the text envelope from Phase 4 and handles any remaining findings.
 
-**Interactive mode:** fire the terminal question using the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code the tool should already be loaded from the Interactive-mode pre-load step in `SKILL.md` — if it isn't, call `ToolSearch` with `select:AskUserQuestion` now. Fall back to numbered options in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question. This question is distinct from the mid-flow routing question (`references/walkthrough.md`) — the routing question chooses *how* to engage with findings, this one chooses *what to do next* once engagement is complete. Do not merge them.
+**Interactive mode:** fire the terminal question using the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code the tool should already be loaded from the Interactive-mode pre-load step in `SKILL.md` — if it isn't, call `ToolSearch` with `select:AskUserQuestion` now. Fall back to a fenced lettered option block in chat only when no blocking tool exists in the harness or the call errors (e.g., Codex edit modes) — not because a schema load is required. Never silently skip the question. This question is distinct from the mid-flow routing question (`references/walkthrough.md`) — the routing question chooses *how* to engage with findings, this one chooses *what to do next* once engagement is complete. Do not merge them. Never render terminal-question options as Markdown ordered lists.
 
-**Stem:** `Apply decisions and what next?`
+**Stem:** Render in the user's language and make the current state explicit. The terminal question happens after the selected package or walk-through has already executed, so do not say "Apply decisions" unless there are still unapplied in-memory Apply decisions. Default English stem: `Review actions are done. What next?` German stem: `Die Review-Aktionen sind erledigt. Was soll als Nächstes passieren?`
 
-**Options (three by default; two in the zero-actionable case):**
+Before the options, state exactly what already happened and what remains, in the user's language:
+
+- `Applied: N`
+- `Recorded as Open Questions: M`
+- `Skipped: K`
+- `CEO decisions still open: C` (only if non-zero)
+- `My recommendation: <proceed / re-review / stop here>, because <one short reason>`
+
+**Options (four by default; two or three in the zero-actionable case):**
 
 When `fixes_applied_count > 0` (at least one safe_auto or Apply decision has landed this session):
 
 ```
-A. Apply decisions and proceed to <next stage>
-B. Apply decisions and re-review
-C. Exit without further action
+A. Proceed to <next stage>
+B. Re-review the document
+C. Stop here — keep the edits, start nothing else
+D. Give me a recommendation only — start nothing else
 ```
 
 When `fixes_applied_count == 0` (zero-actionable case, or the user took routing option D / every walk-through decision was Skip):
 
 ```
 A. Proceed to <next stage>
-B. Exit without further action
+B. Stop here — start nothing else
+C. Give me a recommendation only — start nothing else
+```
+
+German labels when fixes landed:
+
+```text
+A. Weiter zu <next stage>
+B. Noch einmal reviewen
+C. Hier stoppen — Änderungen behalten, nichts weiter starten
+D. Nur Empfehlung geben — nichts weiter starten
+```
+
+German labels when no fixes landed:
+
+```text
+A. Weiter zu <next stage>
+B. Hier stoppen — nichts weiter starten
+C. Nur Empfehlung geben — nichts weiter starten
 ```
 
 The `<next stage>` substitution uses the document type from Phase 1:
@@ -393,7 +588,7 @@ The `<next stage>` substitution uses the document type from Phase 1:
 - Requirements document → `ce-plan`
 - Plan document → `ce-work`
 
-**Label adaptation:** when no decisions are queued to apply, the primary option drops the `Apply decisions and` prefix — the label should match what the system is doing. `Apply decisions and proceed` when fixes are queued; `Proceed` when nothing is queued.
+**Label adaptation:** labels must match what the system is actually doing. Do not imply pending decisions will be applied when the completion report already says they were applied. "Proceed" starts the next skill; "Re-review" runs another document review pass; "Stop here" keeps the current document state and starts nothing else; "Recommendation only" prints a short recommended next move and starts nothing else.
 
 **Caller-context handling (implicit):** the terminal question's "Proceed to <next stage>" option is interpreted contextually by the agent from the visible conversation state. When ce-doc-review is invoked from inside another skill's flow (e.g., ce-brainstorm Phase 4 re-review, ce-plan phase 5.3.8), the agent does not fire a nested `/ce-plan` or `/ce-work` dispatch — it returns control to the caller's flow which continues its own logic. When invoked standalone, "Proceed" dispatches the appropriate next skill. No explicit caller-hint argument is required; if this implicit handling proves unreliable in practice, an explicit `nested:true` flag can be added as a follow-up.
 

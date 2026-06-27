@@ -6,12 +6,12 @@ argument-hint: "[mode:headless] [path/to/document.md]"
 
 # Document Review
 
-Review requirements or plan documents through multi-persona analysis. Dispatches generic subagents seeded with skill-local reviewer prompt assets, auto-applies `safe_auto` fixes, and routes remaining findings through a four-option interaction (per-finding walk-through, auto-resolve with best judgment, Append-to-Open-Questions, Report-only) for user decision.
+Review requirements or plan documents through multi-persona analysis. Dispatches generic subagents seeded with skill-local reviewer prompt assets, applies only unambiguous direct fixes, and routes remaining findings through a CEO-guided interaction: guided walk-through, transparent proposal package, Open-Questions-only record, or report-only. User-facing output must be in the user's conversation language and must explain internal review buckets in plain language before asking for decisions. **CEO-first point wording:** every user-visible finding/action line must first say, in simple CEO-level language, what concretely changes for the reader, implementer, customer, or risk posture; technical field names, IDs, schema terms, route names, or implementation details may appear only afterward in a short parenthetical such as `(technically: ...)` / `(technisch: ...)`.
 
 ## Interactive mode rules
 
 - **Pre-load the platform question tool before any question fires.** In Claude Code, `AskUserQuestion` is a deferred tool — its schema is not available at session start. At the start of Interactive-mode work (before the routing question, per-finding walk-through questions, bulk-preview Proceed/Cancel, and Phase 5 terminal question), call `ToolSearch` with query `select:AskUserQuestion` to load the schema. Load it once, eagerly, at the top of the Interactive flow — do not wait for the first question site. On Codex, Gemini, and Pi this preload is not required.
-- **The numbered-list fallback applies only when the harness genuinely lacks a blocking question tool** — `ToolSearch` returns no match, the tool call explicitly fails, or the runtime mode does not expose it (e.g., Codex edit modes where `request_user_input` is unavailable). A pending schema load is not a fallback trigger; call `ToolSearch` first per the pre-load rule. In genuine-fallback cases, present options as a numbered list and wait for the user's reply — never silently skip the question. Rendering a question as narrative text because the tool feels inconvenient, because the model is in report-formatting mode, or because the instruction was buried in a long skill is a bug. A question that calls for a user decision must either fire the tool or fall back loudly.
+- **The lettered-option fallback applies only when the harness genuinely lacks a blocking question tool** — `ToolSearch` returns no match, the tool call explicitly fails, or the runtime mode does not expose it (e.g., Codex edit modes where `request_user_input` is unavailable). A pending schema load is not a fallback trigger; call `ToolSearch` first per the pre-load rule. In genuine-fallback cases, present options as stable letter labels (`A.`, `B.`, `C.`, `D.`) inside a fenced code block and wait for the user's reply — never use Markdown ordered lists for routing menus, because renderers may continue previous numbering and change the visible option numbers. Rendering a question as narrative text because the tool feels inconvenient, because the model is in report-formatting mode, or because the instruction was buried in a long skill is a bug. A question that calls for a user decision must either fire the tool or fall back loudly.
 
 ## Phase 0: Detect Mode
 
@@ -273,9 +273,19 @@ Cross-session persistence is out of scope. A new invocation of ce-doc-review on 
 
 ## Phases 3-5: Synthesis, Presentation, and Next Action
 
-After all dispatched agents return, read `references/synthesis-and-presentation.md` for the synthesis pipeline (validate, anchor-based gate, dedup, cross-persona agreement promotion, resolve contradictions, auto-promotion, route by three tiers with FYI subsection), `safe_auto` fix application, headless-envelope output, and the handoff to the routing question.
+After all dispatched agents return, read
+`../shared/references/elons-principles-order-of-operations-guard.md` and then
+`references/synthesis-and-presentation.md` for the synthesis pipeline
+(validate, General Finding Relevance & Subtraction Gate, anchor-based gate,
+dedup, cross-persona agreement promotion, resolve contradictions,
+auto-promotion, route by three tiers with FYI subsection), `safe_auto` fix
+application, headless-envelope output, and the handoff to the routing question.
+Apply the subtraction gate to every persona's findings before presenting or
+auto-applying them: a finding is not actionable merely because it is true; it
+must improve the current document's target outcome more than its smallest
+adequate fix increases carrying cost.
 
-For the four-option routing question and per-finding walk-through (interactive mode), read `references/walkthrough.md`. For the bulk-action preview used by best-judgment routing, Append-to-Open-Questions, and walk-through `Auto-resolve with best judgment on the rest`, read `references/bulk-preview.md`. Do not load these files before agent dispatch completes.
+For the four-option routing question and per-finding walk-through (interactive mode), read `references/walkthrough.md`. For the proposal-package preview used by best-judgment routing, Open-Questions-only routing, and walk-through "proposal package for the rest", read `references/bulk-preview.md`. Do not load these files before agent dispatch completes.
 
 ---
 

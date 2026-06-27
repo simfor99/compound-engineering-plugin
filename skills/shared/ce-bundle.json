@@ -105,7 +105,7 @@
     },
     {
       "path": "skills/ce-code-review/references/action-class-rubric.md",
-      "sha256": "c6e635b3fc58161caa8460c770dc2f1f0391e36bb9d4045502169706c40a273d"
+      "sha256": "dcdfbf9f21b3aefa59af7e496b9284a29ac4c15ca644c7fcbf0228675ba4f497"
     },
     {
       "path": "skills/ce-code-review/references/diff-scope.md",
@@ -185,11 +185,11 @@
     },
     {
       "path": "skills/ce-code-review/references/review-output-template.md",
-      "sha256": "30bfa46abea56f9caa90d96555b11fe4eede963775d62bff55c654a327204a8b"
+      "sha256": "6c8a40a1f054d9be89e5f12dbbc44639cf2eeb257fe6f0e0507a8e23bd65982f"
     },
     {
       "path": "skills/ce-code-review/references/subagent-template.md",
-      "sha256": "8eee62e2db46cada1055fa145d88f7a2ed758dfb98131d42b949c56195cdb843"
+      "sha256": "bc07503c863752ecc57f8af94a9a0d5193c159fe2e1711290640bdeef62e7590"
     },
     {
       "path": "skills/ce-code-review/references/validator-template.md",
@@ -197,7 +197,7 @@
     },
     {
       "path": "skills/ce-code-review/SKILL.md",
-      "sha256": "11b1b6a53bdc5ed8debc791b3892f2bcfef0292692611fddcfba2cbf48b61fb8"
+      "sha256": "0bc178db2649b7cd0fba788d6d921bfad8febc6c61929ac75118659dc654b250"
     },
     {
       "path": "skills/ce-commit-push-pr/references/branch-creation.md",
@@ -329,7 +329,7 @@
     },
     {
       "path": "skills/ce-doc-review/references/bulk-preview.md",
-      "sha256": "97d09ad408eee2f1b65b336d872bd492a23c1a2f705c28b1b4c8d358dda36937"
+      "sha256": "5fb127b1940532fbd3add03fcaf318188bb26a91dd9c4337e65e02c010c58d9c"
     },
     {
       "path": "skills/ce-doc-review/references/findings-schema.json",
@@ -373,23 +373,23 @@
     },
     {
       "path": "skills/ce-doc-review/references/review-output-template.md",
-      "sha256": "244bcd74cf43a87b9f4691ef563d47aa50f31183da8f1873af9d13adb9b30481"
+      "sha256": "5eb6a1265c7e4b7f05fda753610d61259ac3b524eabfeeb6a9122fcecb6f868d"
     },
     {
       "path": "skills/ce-doc-review/references/subagent-template.md",
-      "sha256": "c6ed42bfb720de6186b5f544d3c4c29a32f582b89341284f863de857dfeab435"
+      "sha256": "2cca63aac99392281311e695c7122a630b9ed108a67fddd4cf5f4b9c99f80e35"
     },
     {
       "path": "skills/ce-doc-review/references/synthesis-and-presentation.md",
-      "sha256": "4ebdf07634bb7f01a576634837158d24ac8a988775e6b0093a92fd670e78b6f5"
+      "sha256": "b30b977a78662f93ff183c44b0e7ba5058befd69d35b4c4502ae8ff608f865f2"
     },
     {
       "path": "skills/ce-doc-review/references/walkthrough.md",
-      "sha256": "813810e8bdd9c47f2ce72ab7ae8aa572d3e38252a7f2e9189cf41317257399eb"
+      "sha256": "1640ba77617dc53377dc509c52a44cd4f1711514c2a2bd36461ab78988e22b68"
     },
     {
       "path": "skills/ce-doc-review/SKILL.md",
-      "sha256": "5efdc9435bb89e6d4ef8d4c15f9ad43b5dc21d6a3540049f005dd397c77022f4"
+      "sha256": "c649c0cf0048d8888122119656790014c2b30c59d877e13898cca9a943ede1f8"
     },
     {
       "path": "skills/ce-dogfood-beta/references/dogfood-report-template.md",
@@ -957,7 +957,7 @@
     },
     {
       "path": "skills/ce-worktree/SKILL.md",
-      "sha256": "6cdad640e67cc8909df290d9e7b0f0546bfd15597f8eace10441022da7a124f9"
+      "sha256": "5abc76f7a728159b1ae58846eacdd9fa5a3976847c504ab86b2e0e862e962fd9"
     },
     {
       "path": "skills/lfg/references/review-followup.md",
@@ -1009,7 +1009,7 @@
     },
     {
       "path": "skills/shared/references/elons-principles-order-of-operations-guard.md",
-      "sha256": "9e506109dca0d85db529c16ad09c4b0b1631db0caf2dd3a80e139588b56d8db2"
+      "sha256": "0132328c31b7a596fe7ba3dc2aad68c4e42e0e2be2bac1ff5fc964c4850cbdfc"
     },
     {
       "path": "skills/shared/references/evidence-authenticity-guard.md",

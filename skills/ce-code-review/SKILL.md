@@ -509,7 +509,23 @@ A finding qualifies for demotion when **all** of these hold:
 When a finding qualifies:
    - Move demoted findings out of the primary set. If the contributing reviewer is `testing`, append `<file:line> -- <title>` to `testing_gaps`. If `maintainability`, append to `residual_risks`. Use title-only lines (compact return omits `why_it_matters`). Record the demotion count for Coverage.
 
-7. **Confidence gate.** After dedup, promotion, and demotion have shaped the primary set, suppress remaining findings below anchor 75. Exception: P0 findings at anchor 50+ survive the gate -- critical-but-uncertain issues must not be silently dropped. Record the suppressed count by anchor (so Coverage can report "N findings suppressed at anchor 50, M at anchor 25"). The gate runs late deliberately: anchor-50 findings need a chance to be promoted by step 3 (cross-reviewer corroboration) or rerouted by step 6b (mode-aware demotion to soft buckets) before any drop decision.
+6c. **Finding Relevance & Smallest-Fix Gate.** A finding is not actionable merely because it is true or concrete. Before the confidence gate, test each surviving finding against the actual diff, stated intent, runtime context, and caller mode. Keep only findings where the proposed action improves user, caller, operator, data, or contract outcomes more than the added code/process/testing burden it creates.
+
+   Apply these rules:
+   - **Bug override:** Do not subtract concrete P0/P1 correctness, security, data-loss, auth, crash, migration, contract, or compile/build-break findings when the failure path is reachable from the diff. Small scope does not excuse a real breakage.
+   - **Context fit:** If the risk only matters for a production-exposed service but the changed surface is local tooling, fixtures, tests, docs, one-off migration scaffolding, or development-only wiring, reroute to `residual_risks` or suppress unless the diff can leak into production behavior.
+   - **Carrying cost:** If the suggested fix adds policy, abstraction, framework, persistence, config, monitoring, retry, cache, permission, validation, or process surface, require evidence that carrying that surface is cheaper than accepting the current risk.
+   - **Smallest adequate fix:** When a finding survives but the proposed fix is larger than needed, rewrite the fix direction to the smallest local guard, deletion, test, contract correction, or documentation note that closes the observed issue. Prefer deleting unnecessary surface over adding a compensating layer.
+   - **Test proportionality:** Test findings survive only when the diff creates behavior that can regress and a specific test would catch it. Broad "add more tests" findings move to `testing_gaps` or are suppressed.
+   - **Architecture and maintainability:** Refactor findings survive only when they reduce net complexity, remove duplication with a real bug risk, unblock a named consumer, or enforce an explicit project rule. Pure neatness, future flexibility, or taste is not a primary finding.
+   - **Security, reliability, and performance:** Hardening survives when the changed path is reachable under the app's real threat, load, failure, or deployment model. Generic defense-in-depth, theoretical scale, and local-dev-only exposure are advisory at most.
+
+   Record the result for Coverage:
+   - `Context advisory: N` findings rerouted from primary findings to `residual_risks` or `testing_gaps` because the concern is useful context but not current action.
+   - `Subtracted: N` findings removed entirely because the fix would add more weight than the risk justifies.
+   - `Simplified fixes: N` findings kept with a smaller fix direction than the reviewer proposed.
+
+7. **Confidence gate.** After dedup, promotion, demotion, and relevance filtering have shaped the primary set, suppress remaining findings below anchor 75. Exception: P0 findings at anchor 50+ survive the gate -- critical-but-uncertain issues must not be silently dropped. Record the suppressed count by anchor (so Coverage can report "N findings suppressed at anchor 50, M at anchor 25"). The gate runs late deliberately: anchor-50 findings need a chance to be promoted by step 3 (cross-reviewer corroboration), rerouted by step 6b (mode-aware demotion to soft buckets), or subtracted by step 6c before any drop decision.
 8. **Partition the work.** Build two sets:
    - actionable queue: `gated_auto` or `manual` findings whose owner is `downstream-resolver` (hand off to caller)
    - report-only queue: `advisory` findings plus anything owned by `human` or `release`
@@ -521,7 +537,7 @@ When a finding qualifies:
    - **Grouping signals:** shared root cause, affected subsystem, user-facing failure mode, overlapping fix path, dependency ordering, or repeated symptoms of one design choice.
    - **Group shape:** short title, the included stable finding `#`s, one-line context, preferred resolution, and why — when one fix path resolves several findings, name it and say which finding to handle first.
    - **Ordering:** order groups by the highest-severity finding they contain, then by lowest stable `#`. A finding appears in at most one group; leave genuinely unrelated findings ungrouped.
-10. **Collect coverage data.** Union residual_risks and testing_gaps across reviewers.
+10. **Collect coverage data.** Union residual_risks and testing_gaps across reviewers, including any context-advisory items from step 6c.
 11. **Preserve CE local-prompt artifacts.** Keep the learnings, agent-native, and deployment-verification outputs alongside the merged finding set. Do not drop unstructured output just because it does not match the persona JSON schema. Schema drift from `data-migration` is already in the merged finding set.
 
 ### Stage 5b: Validation pass (optional quality gate)
@@ -618,7 +634,7 @@ Per-severity tables are **5 columns** — `Route` is not shown here (it appears 
 7. **Learnings & Past Solutions.** Surface `learnings-researcher` local-prompt results: if past solutions are relevant, flag them as "Known Pattern" with links to docs/solutions/ files.
 8. **Agent-Native Gaps.** Surface `agent-native-reviewer` local-prompt results. Omit section if no gaps found.
 9. **Deployment Notes.** If the `deployment-verification-agent` local prompt ran, surface the key Go/No-Go items: blocking pre-deploy checks, the most important verification queries, rollback caveats, and monitoring focus areas. Keep the checklist actionable rather than dropping it into Coverage. Schema drift appears in the findings tables as `data-migration` P1 rows — do not add a separate Schema Drift section.
-10. **Coverage.** Applied count (when Stage 5c ran), suppressed count by anchor (e.g., "N findings suppressed at anchor 50, M at anchor 25"), mode-aware demotion count, validator drop count and reasons (when Stage 5b ran), any P0/P1 with degraded validation (kept on validator infra failure), validator over-budget drops (when the 15-cap fired), residual risks, testing gaps, failed/timed-out reviewers, and inferred-intent uncertainty when applicable. **Removable surface (only when deletion-oriented maintainability findings exist):** one line giving the approximate net lines/files those findings would remove if applied (e.g., "Removable surface: ~120 lines / 2 files across findings #4, #7"). This is a dead-weight signal, **not** a reduction target — never lower the bar for a finding or invent deletions to grow the number, and omit the line entirely when no finding proposes a deletion.
+10. **Coverage.** Applied count (when Stage 5c ran), suppressed count by anchor (e.g., "N findings suppressed at anchor 50, M at anchor 25"), mode-aware demotion count, relevance-gate counts (`Context advisory`, `Subtracted`, `Simplified fixes`), validator drop count and reasons (when Stage 5b ran), any P0/P1 with degraded validation (kept on validator infra failure), validator over-budget drops (when the 15-cap fired), residual risks, testing gaps, failed/timed-out reviewers, and inferred-intent uncertainty when applicable. **Removable surface (only when deletion-oriented maintainability findings exist):** one line giving the approximate net lines/files those findings would remove if applied (e.g., "Removable surface: ~120 lines / 2 files across findings #4, #7"). This is a dead-weight signal, **not** a reduction target — never lower the bar for a finding or invent deletions to grow the number, and omit the line entirely when no finding proposes a deletion.
 11. **Verdict.** Ready to merge / Ready with fixes / Not ready. Fix order if applicable. When an `explicit` plan has unaddressed requirements or implementation units, the verdict must reflect it — a PR that's code-clean but missing planned requirements is "Not ready" unless the omission is intentional. When an `inferred` plan has unaddressed requirements or implementation units, note it in the verdict reasoning but do not block on it alone.
 
 Do not include time estimates.
@@ -675,7 +691,7 @@ On failure before review completes, set `"status": "failed"` and `"reason": "<on
 
 Before delivering the review, verify:
 
-1. **Every finding is actionable.** Re-read each finding. If it says "consider", "might want to", or "could be improved" without a concrete fix, rewrite it with a specific action. Vague findings waste engineering time.
+1. **Every finding earns its place.** Re-read each finding. If it says "consider", "might want to", or "could be improved" without a concrete failure mode and smallest adequate fix, either rewrite it into a specific action or subtract/reroute it per Stage 5 step 6c. Vague or overweight findings waste engineering time.
 2. **No false positives from skimming.** For each finding, verify the surrounding code was actually read. Check that the "bug" isn't handled elsewhere in the same function, that the "unused import" isn't used in a type annotation, that the "missing null check" isn't guarded by the caller.
 3. **Severity is calibrated.** A style nit is never P0. A SQL injection is never P3. Re-check every severity assignment.
 4. **Line numbers are accurate.** Verify each cited line number against the file content. A finding pointing to the wrong line is worse than no finding.

@@ -149,7 +149,7 @@ This fails because: no pipe-delimited tables, no severity-grouped `###` headers,
 - **Learnings & Past Solutions section** -- results from the `learnings-researcher` local prompt asset, with links to docs/solutions/ files
 - **Agent-Native Gaps section** -- results from the `agent-native-reviewer` local prompt asset. Omit if no gaps found.
 - **Deployment Notes section** -- key checklist items from the `deployment-verification-agent` local prompt asset. Omit if the prompt did not run. Schema drift surfaces as `data-migration` findings — no separate section.
-- **Coverage section** -- suppressed count, removable surface (only when deletion-oriented maintainability findings exist; approximate net lines/files removable if applied -- a dead-weight signal, never a reduction target, omit otherwise), residual risks, testing gaps, failed reviewers
+- **Coverage section** -- suppressed count, relevance-gate counts (`Context advisory`, `Subtracted`, `Simplified fixes`), removable surface (only when deletion-oriented maintainability findings exist; approximate net lines/files removable if applied -- a dead-weight signal, never a reduction target, omit otherwise), residual risks, testing gaps, failed reviewers
 - **Summary uses blockquotes** for verdict, reasoning, and fix order
 - **Horizontal rule** (`---`) separates findings from verdict
 - **`###` headers** for each section -- never plain text headers

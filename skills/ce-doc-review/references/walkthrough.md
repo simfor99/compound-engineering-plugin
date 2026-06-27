@@ -10,17 +10,32 @@ Interactive mode only.
 
 After `safe_auto` fixes apply and synthesis produces the remaining finding set, the orchestrator asks a four-option routing question before any walk-through or bulk action runs.
 
-Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, the tool should already be loaded from the Interactive-mode pre-load step in `SKILL.md` — if it isn't, call `ToolSearch` with query `select:AskUserQuestion` now. Fall back to presenting the options as a numbered list only when the harness genuinely lacks a blocking tool — `ToolSearch` returns no match, the tool call explicitly fails, or the runtime mode does not expose it (e.g., Codex edit modes without `request_user_input`). A pending schema load is not a fallback trigger. Never silently skip the question. Rendering the routing question as narrative text without the numbered-list fallback is a bug.
+Use the platform's blocking question tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex, `ask_question` in Antigravity CLI (`agy`), `ask_user` in Pi (requires the `pi-ask-user` extension)). In Claude Code, the tool should already be loaded from the Interactive-mode pre-load step in `SKILL.md` — if it isn't, call `ToolSearch` with query `select:AskUserQuestion` now. Fall back to presenting the options as a lettered option block only when the harness genuinely lacks a blocking tool — `ToolSearch` returns no match, the tool call explicitly fails, or the runtime mode does not expose it (e.g., Codex edit modes without `request_user_input`). A pending schema load is not a fallback trigger. Never silently skip the question. Rendering the routing question as narrative text without the lettered fallback is a bug.
 
-**Stem:** `What should the agent do with the remaining N findings?`
+**Fallback rendering rule:** when a text fallback is required, render routing menus as fenced code blocks with stable letter labels (`A.`, `B.`, `C.`, `D.`). Never render routing options as Markdown ordered lists (`1.`, `2.`, `3.`), because Markdown renderers may continue numbering from an earlier report section and make the visible option numbers differ from the intended choices.
+
+**Stem:** Render in the user's language. In German: `Wie möchtest du mit den verbleibenden N Punkten umgehen?`
+
+Before the options, add a short coaching line in the user's language that explains the choice without internal enums. In German:
+
+`Mein Ziel: Ich kann dich entweder Punkt für Punkt durchführen oder zuerst ein konkretes Vorschlagspaket zeigen. Bis du ein Paket bestätigst, ändere ich nichts.`
 
 **Options (fixed order; no option is labeled `(recommended)` — the routing choice is user-intent):**
 
 ```
-A. Review each finding one by one — accept the recommendation or choose another action
-B. Auto-resolve with best judgment — apply per-finding edits the agent can defend, surface the rest
-C. Append findings to the doc's Open Questions section and proceed
-D. Report only — take no further action
+A. Guided walk-through — decide each point with a short explanation
+B. Show my proposed resolution package — no edits until you confirm the preview
+C. Record as Open Questions only — no direct fixes, no implementation decision
+D. Report only — keep the document unchanged
+```
+
+German labels:
+
+```text
+A. Gemeinsam durchgehen — ich erkläre jeden Punkt kurz und du entscheidest
+B. Vorschlagspaket zeigen — ich sortiere vor, ändere aber noch nichts
+C. Nur als offene Fragen notieren — keine direkten Fixes, keine Umsetzungsentscheidung
+D. Nur Bericht — Dokument unverändert lassen
 ```
 
 The per-finding `(recommended)` labeling lives inside the walk-through (option A) and the bulk preview (options B/C), where it's applied per-finding from synthesis step 3.5b's `recommended_action`. The routing question itself does not recommend one of A/B/C/D because the right route depends on user intent (engage / trust / triage / skim), not on the finding-set shape — a rule that mapped finding-set shape to routing recommendation (e.g., "most findings are Apply-shaped → recommend best-judgment") would pressure users toward automated paths in ways that conflict with the user-intent framing.
@@ -31,9 +46,9 @@ If all remaining findings are FYI-subsection-only (no `gated_auto` or `manual` f
 
 **Dispatch by selection:**
 
-- **A** — load this walk-through (per-finding loop). Apply decisions accumulate in memory; Open-Questions defers execute inline via `references/open-questions-defer.md`; Skip decisions are recorded as no-action; `Auto-resolve with best judgment on the rest` routes through `references/bulk-preview.md`.
-- **B** — load `references/bulk-preview.md` scoped to every pending `gated_auto` / `manual` finding. On Proceed, execute the plan: Apply → end-of-batch document edit; Open-Questions defers → `references/open-questions-defer.md`; Skip → no-op. On Cancel, return to the routing question.
-- **C** — load `references/bulk-preview.md` with every pending finding in the Open-Questions bucket (regardless of the agent's natural recommendation). On Proceed, route every finding through `references/open-questions-defer.md`; no document edits apply. On Cancel, return to the routing question.
+- **A** — load this walk-through (per-finding loop). Apply decisions accumulate in memory; Open-Questions defers execute inline via `references/open-questions-defer.md`; Skip decisions are recorded as no-action; "proposal package for the rest" routes through `references/bulk-preview.md`.
+- **B** — load `references/bulk-preview.md` scoped to every pending `gated_auto` / `manual` finding. The preview must show exactly what would be applied, deferred, skipped, and which CEO decisions are still needed. On Proceed, execute only the non-CEO plan: Apply → end-of-batch document edit; Open-Questions defers → `references/open-questions-defer.md`; Skip → no-op. On Cancel, return to the routing question.
+- **C** — load `references/bulk-preview.md` with every pending non-CEO finding in the Open-Questions bucket (regardless of the agent's natural recommendation). On Proceed, route every non-CEO finding through `references/open-questions-defer.md`; no document edits apply. CEO-required findings must not be hidden in Open Questions; ask them in chat first or state that the user explicitly declined CEO handling. On Cancel, return to the routing question.
 - **D** — do not enter any dispatch phase. Emit the completion report and flow to Phase 5 terminal question.
 
 ---
@@ -71,6 +86,8 @@ When the user picks Apply on a root, do NOT cascade — the premise held, so dep
 
 Each finding is presented in two parts: a terminal output block carrying the explanation, and a question via the platform's blocking question tool carrying the decision. Never merge the two — the terminal block uses markdown; the question uses plain text.
 
+**CEO-first point wording.** The walk-through is a decision aid for a CEO/architect, not a raw fixer diff. Every visible explanation starts with the human consequence in simple language. Technical identifiers, file paths, schema fields, route names, component IDs, and exact implementation wording come afterward in a short parenthetical only when useful. The explanation must still make sense if the parenthetical is removed.
+
 ### Terminal output block (print before firing the question)
 
 Render as markdown. Labels on their own line, blank lines between sections:
@@ -92,6 +109,10 @@ Section: {section}
 
 {short reasoning, grounded in a pattern cited in the document or codebase when available}
 
+**My recommendation**
+
+{one sentence: Apply / Defer / Skip, in plain language, with the reason}
+
 {Conflict-context line, when applicable — see below}
 ```
 
@@ -99,16 +120,17 @@ Substitutions:
 
 - **`{plain-English title}`** — a 3–8 word summary suitable as a heading. Derived from the merged finding's `title` field but rephrased so it reads as observable consequence (e.g., "Implementers will pick different tiers" rather than "Section X-Y lists four tiers"). For document-review findings, observable consequence is the *effect on a reader, implementer, or downstream decision*, not runtime behavior.
 - **`{section}`** — from the finding's `section` field.
-- **`why_it_matters`** — from the merged finding's `why_it_matters` field. Rendered as-is; the subagent template's framing guidance ensures it's already observable-consequence-first.
+- **`why_it_matters`** — from the merged finding's `why_it_matters` field, paraphrased into CEO-first point wording when the raw text is too technical. Preserve the substance, but start with who is affected and what can go wrong. If exact technical detail is useful, append it in parentheses. Do not start with field names, enum values, route names, component IDs, or implementation verbs.
 - **`suggested_fix`** — from the merged finding's `suggested_fix` field. Render as prose describing intent, not as raw markup. The user's job is to trust or reject the action — they don't need to review exact text. Rules:
   - **Default — one sentence describing the effect.** What does the fix achieve, and where does it live? Prefer intent language over quoted text.
-    - Good: `Drop the Advisory tier from the enum; advisory-style findings surface in an FYI subsection at the presentation layer.`
-    - Good: `Add a deployment-ordering constraint requiring Units 3 and 4 in a single commit.`
+    - Good: `Low-priority observations stop competing with real decisions; they move into a separate FYI area. (Technically: drop the Advisory tier from the enum.)`
+    - Good: `The rollout cannot split two units that must ship together. (Technically: add a deployment-ordering constraint requiring Units 3 and 4 in one commit.)`
     - Bad: `Change "autofix_class: [auto, gated_auto, advisory, present]" to "autofix_class: [safe_auto, gated_auto, manual]" in findings-schema.json on line 48.` — too syntax-focused for a decision loop
   - **Code-span budget** — at most 2 inline backtick spans per sentence, each a single identifier, flag, or short phrase (e.g., `` `safe_auto` ``, `` `<work-context>` ``). Always leave a space before and after each backtick span.
   - **Raw code blocks** — only for short (≤5-line) genuinely additive content where no before-state exists. Above 5 lines, switch to a summary.
   - **No diff blocks.** Document mutations render as prose.
 - **`Why it works`** — grounded reasoning that, where possible, references a similar pattern already used in the document or codebase. One to three sentences.
+- **`My recommendation`** — required. State the recommended action and why in decision language, not tool language. German examples: `Ich würde das direkt einarbeiten, weil es eine konkrete Plan-Lücke schließt.` `Ich würde das als CEO-Entscheidung behandeln, weil mehrere Architekturpfade plausibel sind.` `Ich würde es überspringen, weil der Plan das an anderer Stelle bereits ausreichend regelt.`
 - **Conflict-context line (when applicable)** — when contributing personas implied different actions for this finding and synthesis step 3.6 broke the tie, surface that briefly. Example: `Coherence recommends Apply; scope-guardian recommends Skip. Agent's recommendation: Skip.` The orchestrator's recommendation — the post-tie-break value — is what the menu labels "recommended."
 
 ### Question stem (short, decision-focused)
@@ -131,37 +153,56 @@ Never enumerate alternatives in the stem. One recommendation as a yes/no — the
 
 After the user answers and before printing the next finding's terminal block, emit a one-line confirmation of the action taken. Examples: `→ Applied. Edit staged at "Scope Boundaries" section.`, `→ Deferred. Entry appended to "## Deferred / Open Questions".`, `→ Skipped.`
 
+**No teaser-only transitions.** After the confirmation, continue directly to
+the next unresolved item: render the next finding's terminal block and fire its
+blocking question in the same assistant turn. Do not end a turn with only a
+preview such as `Next finding: Cross-workspace hygiene gap` or `Als Nächstes
+besprechen wir ...` and wait for the user to say continue. If local
+verification checks must run between findings, run them first, then present the
+next finding and question immediately. A short transition line may name the
+next finding only when it is immediately followed by the full finding block and
+decision question (or, for strategic findings, the CEO decision template).
+
 ### Options (four; adapted as noted)
 
-These four options are the **complete, exclusive set** for the regular per-finding question. Fixed order — never reorder, never add, never substitute. In particular, **`Acknowledge` is NOT one of these options** — it appears only in the no-fix sub-question described under "Per-finding routing" below, which fires only when the user picks Apply on a finding that lacks a `suggested_fix`. Importing `Acknowledge` into the regular menu (in place of D, or as a fifth option) is a bug — it silently drops the `Auto-resolve with best judgment on the rest` workflow shortcut, and surfacing `Acknowledge` outside the no-fix path mislabels the user's choice in the completion report's bucket counts.
+These four options are the **complete, exclusive set** for the regular per-finding question. Fixed order — never reorder, never add, never substitute. In particular, **`Acknowledge` is NOT one of these options** — it appears only in the no-fix sub-question described under "Per-finding routing" below, which fires only when the user picks Apply on a finding that lacks a `suggested_fix`. Importing `Acknowledge` into the regular menu (in place of D, or as a fifth option) is a bug — it silently drops the proposal-package workflow shortcut, and surfacing `Acknowledge` outside the no-fix path mislabels the user's choice in the completion report's bucket counts.
 
 ```
 A. Apply the proposed fix
 B. Defer — append to the doc's Open Questions section
 C. Skip — don't apply, don't append
-D. Auto-resolve with best judgment on the rest
+D. Show a proposed resolution package for the rest
 ```
 
-**Mark the post-tie-break recommendation with `(recommended)` on its option label.** Required, not optional. Only A, B, or C can carry it — synthesis emits `recommended_action` as Apply/Defer/Skip, which maps to A/B/C. D (`Auto-resolve with best judgment on the rest`) is a workflow shortcut for bulk execution across remaining findings, not a finding-level resolution action, so it is never marked `(recommended)`.
+German labels:
+
+```text
+A. Vorgeschlagenen Fix anwenden
+B. Als offene Frage im Dokument notieren
+C. Überspringen — nichts ändern, nichts anhängen
+D. Vorschlagspaket für den Rest zeigen
+```
+
+**Mark the post-tie-break recommendation with `(recommended)` on its option label.** Required, not optional. Only A, B, or C can carry it — synthesis emits `recommended_action` as Apply/Defer/Skip, which maps to A/B/C. D (`Show a proposed resolution package for the rest`) is a workflow shortcut for bulk execution across remaining findings, not a finding-level resolution action, so it is never marked `(recommended)`.
 
 ```
 A. Apply the proposed fix  (recommended)
 B. Defer — append to the doc's Open Questions section
 C. Skip — don't apply, don't append
-D. Auto-resolve with best judgment on the rest
+D. Show a proposed resolution package for the rest
 ```
 
 When reviewers disagreed or evidence cuts against the default, still mark one option — whichever synthesis produced — and surface the disagreement in the conflict-context line.
 
 ### Adaptations
 
-- **N=1 (exactly one pending finding):** the terminal block's heading omits `Finding N of M` and renders as `## {severity} {plain-English title}`. The stem's first line drops the position counter, becoming `{severity} {short handle}.` Option D (`Auto-resolve with best judgment on the rest`) is suppressed because no subsequent findings exist — the menu shows three options: Apply / Defer / Skip.
+- **N=1 (exactly one pending finding):** the terminal block's heading omits `Finding N of M` and renders as `## {severity} {plain-English title}`. The stem's first line drops the position counter, becoming `{severity} {short handle}.` Option D (`Show a proposed resolution package for the rest`) is suppressed because no subsequent findings exist — the menu shows three options: Apply / Defer / Skip.
 
-- **Open-Questions append unavailable** (read-only document, write-failed): when `references/open-questions-defer.md` reports the in-doc append mechanic cannot run, option B is omitted. The stem appends one line explaining why (e.g., `Defer unavailable — document is read-only in this environment.`). The menu shows three options: Apply / Skip / Auto-resolve with best judgment on the rest. Before rendering options, remap any per-finding `Defer` recommendation from synthesis to `Skip` so the `(recommended)` marker lands on an option that's actually in the menu. Surface the remap on the conflict-context line (e.g., `Synthesis recommended Defer; downgraded to Skip — document is read-only.`).
+- **Open-Questions append unavailable** (read-only document, write-failed): when `references/open-questions-defer.md` reports the in-doc append mechanic cannot run, option B is omitted. The stem appends one line explaining why (e.g., `Defer unavailable — document is read-only in this environment.`). The menu shows three options: Apply / Skip / Show a proposed resolution package for the rest. Before rendering options, remap any per-finding `Defer` recommendation from synthesis to `Skip` so the `(recommended)` marker lands on an option that's actually in the menu. Surface the remap on the conflict-context line (e.g., `Synthesis recommended Defer; downgraded to Skip — document is read-only.`).
 
 - **Combined N=1 + no-append:** the menu shows two options: Apply / Skip.
 
-Only when `ToolSearch` explicitly returns no match or the tool call errors — or on a platform with no blocking question tool — fall back to presenting the options as a numbered list and waiting for the user's next reply.
+Only when `ToolSearch` explicitly returns no match or the tool call errors — or on a platform with no blocking question tool — fall back to presenting the options as a fenced lettered option block and waiting for the user's next reply. Do not use Markdown ordered lists for this fallback.
 
 ---
 
@@ -172,11 +213,11 @@ For each finding's answer:
 - **Apply the proposed fix** — add the finding's id to an in-memory Apply set. Advance to the next finding. Do not edit the document inline — Apply accumulates for end-of-walk-through batch execution. **No-fix guard:** if the merged finding has no `suggested_fix` (possible on `manual` findings where the persona flagged the issue as observation without a concrete resolution), Apply is not executable. Do not add the finding to the Apply set. Instead, surface the no-fix sub-question described below before advancing.
 - **Defer — append to Open Questions section** — invoke the append flow from `references/open-questions-defer.md`. The walk-through's position indicator stays on the current finding during any failure-path sub-question (Retry / Fall back / Convert to Skip). On success, record the append location and reference in the in-memory decision list and advance. On conversion-to-Skip from the failure path, advance with the failure noted in the completion report.
 - **Skip — don't apply, don't append** — record Skip in the in-memory decision list. Advance. No side effects.
-- **Auto-resolve with best judgment on the rest** — exit the walk-through loop. Dispatch the bulk preview from `references/bulk-preview.md`, scoped to the current finding and everything not yet decided. The preview header reports the count of already-decided findings ("K already decided"). If the user picks Cancel from the preview, return to the current finding's per-finding question (not to the routing question). If the user picks Proceed, execute the plan per `references/bulk-preview.md` — Apply findings join the in-memory Apply set with the ones the user already picked, Defer findings route through `references/open-questions-defer.md`, Skip is no-op — then proceed to end-of-walk-through execution.
+- **Show a proposed resolution package for the rest** — exit the walk-through loop. Dispatch the bulk preview from `references/bulk-preview.md`, scoped to the current finding and everything not yet decided. The preview header reports the count of already-decided findings ("K already decided"). If the user picks Cancel from the preview, return to the current finding's per-finding question (not to the routing question). If the user picks Proceed, execute the package per `references/bulk-preview.md` — Apply findings join the in-memory Apply set with the ones the user already picked, Defer findings route through `references/open-questions-defer.md`, Skip is no-op — then proceed to end-of-walk-through execution.
 
 ### No-fix sub-question (Apply picked on a finding with no `suggested_fix`)
 
-This sub-question — and the `Acknowledge without applying` option in particular — is **exclusive to the no-fix path**. It fires only after the user picks Apply on a finding whose merged record has no `suggested_fix`. Do not surface this sub-question, or its `Acknowledge` option, in the regular per-finding menu. The regular menu's fourth option is always `Auto-resolve with best judgment on the rest` (per "Options" above), never `Acknowledge`.
+This sub-question — and the `Acknowledge without applying` option in particular — is **exclusive to the no-fix path**. It fires only after the user picks Apply on a finding whose merged record has no `suggested_fix`. Do not surface this sub-question, or its `Acknowledge` option, in the regular per-finding menu. The regular menu's fourth option is always `Show a proposed resolution package for the rest` (per "Options" above), never `Acknowledge`.
 
 Synthesis step 3.5b demotes the default recommendation from Apply to Defer for any merged finding without a `suggested_fix`, so `(recommended)` never lands on Apply for these findings. But the menu still lets the user pick Apply manually. When that happens, do not add the finding to the Apply set — the execution pass has no edit payload to apply, which would either fail the batch or record a misleading "applied" outcome.
 
@@ -226,13 +267,13 @@ Cross-session persistence is out of scope. Mirrors `ce-code-review`'s walk-throu
 
 ## End-of-walk-through execution
 
-After the loop terminates — either every finding has been answered, or the user took `Auto-resolve with best judgment on the rest → Proceed` — the walk-through hands off to the execution phase:
+After the loop terminates — either every finding has been answered, or the user took `Show a proposed resolution package for the rest → Proceed` — the walk-through hands off to the execution phase:
 
 1. **Apply set:** in a single pass, the orchestrator applies every accumulated Apply-set finding's `suggested_fix` to the document. Document edits happen inline via the platform's edit tool — ce-doc-review has no batch-fixer subagent (per scope boundary); the orchestrator performs the edits directly, since `gated_auto` and `manual` fixes for documents are single-file markdown changes with no cross-file dependencies. **Defensive no-fix check:** before dispatching the edit for each Apply-set entry, verify the merged finding carries a `suggested_fix`. If it does not (the decision-time no-fix guard in "Per-finding routing" should prevent this, but treat it as a defensive fallback), skip the edit, record the finding in the completion report's failure section with reason `Apply skipped — no suggested_fix available`, and continue the batch. Do not fail the entire pass because one Apply-set entry lacks a fix.
 2. **Defer set:** already executed inline during the walk-through via `references/open-questions-defer.md`. Nothing to dispatch here.
 3. **Skip:** no-op.
 
-After execution completes (or after `Auto-resolve with best judgment on the rest → Cancel` followed by the user working through remaining findings one at a time, or after the loop runs to completion), emit the unified completion report described below.
+After execution completes (or after `Show a proposed resolution package for the rest → Cancel` followed by the user working through remaining findings one at a time, or after the loop runs to completion), emit the unified completion report described below.
 
 ---
 
@@ -241,7 +282,7 @@ After execution completes (or after `Auto-resolve with best judgment on the rest
 Every terminal path of Interactive mode emits the same completion report structure. This covers:
 
 - Walk-through completed (all findings answered)
-- Walk-through bailed via `Auto-resolve with best judgment on the rest → Proceed`
+- Walk-through bailed via `Show a proposed resolution package for the rest → Proceed`
 - Top-level best-judgment (routing option B) completed
 - Top-level Append-to-Open-Questions (routing option C) completed
 - Zero findings after `safe_auto` (routing question was skipped — the completion summary is a one-line degenerate case of this structure)
